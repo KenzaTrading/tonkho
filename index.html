@@ -50,25 +50,9 @@
       <div class="tab-content" id="myTabContent">
         <!-- Tab 1: Nhập liệu & Tồn kho -->
         <div class="tab-pane fade show active" id="input" role="tabpanel" aria-labelledby="input-tab">
-          <!-- Nhập lệnh text -->
-          <div class="form-section">
-            <h5>Nhập lệnh text</h5>
-            <div class="mb-3">
-              <label for="commandInput" class="form-label">Lệnh (VD: t a01 100, n a01 50m, x a01 30):</label>
-              <div class="input-group">
-                <input type="text" class="form-control" id="commandInput" placeholder="Nhập lệnh tại đây">
-                <button class="btn btn-primary" onclick="processTextCommand()">Thực hiện</button>
-              </div>
-            </div>
-            <div class="mb-3">
-              <label for="commandDate" class="form-label">Ngày:</label>
-              <input type="date" class="form-control" id="commandDate" value="">
-            </div>
-          </div>
-
           <!-- Form nhập liệu -->
           <div class="form-section">
-            <h5>Nhập liệu qua form</h5>
+            <h5>Nhập liệu</h5>
             <div class="row g-3">
               <div class="col-md-3 col-12">
                 <label for="formType" class="form-label">Loại lệnh:</label>
@@ -82,11 +66,15 @@
                 <label for="formCode" class="form-label">Mã vải:</label>
                 <input type="text" class="form-control" id="formCode" placeholder="VD: A01">
               </div>
-              <div class="col-md-3 col-12">
-                <label for="formAmount" class="form-label">Số mét:</label>
-                <input type="number" class="form-control" id="formAmount" placeholder="VD: 100">
+              <div class="col-md-2 col-12">
+                <label for="formTrees" class="form-label">Số cây:</label>
+                <input type="number" min="0" step="1" class="form-control" id="formTrees" placeholder="VD: 3">
               </div>
-              <div class="col-md-3 col-12">
+              <div class="col-md-2 col-12">
+                <label for="formMeters" class="form-label">Số mét:</label>
+                <input type="number" step="0.1" class="form-control" id="formMeters" placeholder="VD: 100.5">
+              </div>
+              <div class="col-md-2 col-12">
                 <label for="formDate" class="form-label">Ngày:</label>
                 <input type="date" class="form-control" id="formDate" value="">
               </div>
@@ -101,6 +89,7 @@
             <thead>
               <tr>
                 <th>Mã vải</th>
+                <th>Số cây</th>
                 <th>Số mét</th>
               </tr>
             </thead>
@@ -117,8 +106,10 @@
                 <th>Ngày</th>
                 <th>Loại</th>
                 <th>Mã vải</th>
+                <th>Số cây</th>
                 <th>Số mét</th>
-                <th>Tồn kho</th>
+                <th>Tồn kho (cây)</th>
+                <th>Tồn kho (mét)</th>
                 <th>Hành động</th>
               </tr>
             </thead>
@@ -168,8 +159,12 @@
             <input type="text" class="form-control" id="editCode">
           </div>
           <div class="mb-3">
-            <label for="editAmount" class="form-label">Số mét:</label>
-            <input type="number" class="form-control" id="editAmount">
+            <label for="editTrees" class="form-label">Số cây:</label>
+            <input type="number" min="0" step="1" class="form-control" id="editTrees">
+          </div>
+          <div class="mb-3">
+            <label for="editMeters" class="form-label">Số mét:</label>
+            <input type="number" step="0.1" class="form-control" id="editMeters">
           </div>
           <div class="mb-3">
             <label for="editDate" class="form-label">Ngày:</label>
@@ -194,32 +189,47 @@
 
     // Thiết lập ngày mặc định là hôm nay
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('commandDate').value = today;
     document.getElementById('formDate').value = today;
 
     // Hàm lưu dữ liệu vào localStorage
     function saveData() {
-      localStorage.setItem('inventory', JSON.stringify(inventory));
-      localStorage.setItem('transactions', JSON.stringify(transactions));
+      try {
+        localStorage.setItem('inventory', JSON.stringify(inventory));
+        localStorage.setItem('transactions', JSON.stringify(transactions));
+      } catch (error) {
+        console.error('Lỗi lưu localStorage:', error);
+        document.getElementById('output').textContent = 'Lỗi lưu dữ liệu!';
+      }
     }
 
     // Hàm tải dữ liệu từ localStorage
     function loadData() {
-      inventory = JSON.parse(localStorage.getItem('inventory') || '{}');
-      transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-      updateUI();
+      try {
+        inventory = JSON.parse(localStorage.getItem('inventory') || '{}');
+        transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+        updateUI();
+      } catch (error) {
+        console.error('Lỗi tải localStorage:', error);
+        document.getElementById('output').textContent = 'Lỗi tải dữ liệu!';
+      }
     }
 
     // Hàm tính toán lại tồn kho từ lịch sử giao dịch
     function recalculateInventory() {
       inventory = {};
       transactions.forEach(t => {
-        if (t.type === 't') {
-          inventory[t.code] = t.amount;
-        } else if (t.type === 'n') {
-          inventory[t.code] = (inventory[t.code] || 0) + t.amount;
-        } else if (t.type === 'x') {
-          inventory[t.code] = (inventory[t.code] || 0) - t.amount;
+        if (t && t.type && t.code && t.trees !== undefined && t.meters !== undefined) {
+          if (t.type === 't') {
+            inventory[t.code] = { trees: t.trees, meters: t.meters };
+          } else if (t.type === 'n') {
+            inventory[t.code] = inventory[t.code] || { trees: 0, meters: 0 };
+            inventory[t.code].trees += t.trees;
+            inventory[t.code].meters += t.meters;
+          } else if (t.type === 'x') {
+            inventory[t.code] = inventory[t.code] || { trees: 0, meters: 0 };
+            inventory[t.code].trees -= t.trees;
+            inventory[t.code].meters -= t.meters;
+          }
         }
       });
     }
@@ -228,104 +238,80 @@
     function updateUI() {
       const inventoryBody = document.getElementById('inventory');
       inventoryBody.innerHTML = '';
-      for (const [code, amount] of Object.entries(inventory)) {
-        const row = `<tr><td>${code}</td><td>${amount} m</td></tr>`;
+      for (const [code, data] of Object.entries(inventory)) {
+        const row = `<tr><td>${code}</td><td>${data.trees}</td><td>${data.meters.toFixed(1)} m</td></tr>`;
         inventoryBody.innerHTML += row;
       }
 
       const transactionsBody = document.getElementById('transactions');
       transactionsBody.innerHTML = '';
       transactions.forEach((t, index) => {
-        const row = `
-          <tr>
-            <td>${t.date}</td>
-            <td>${t.displayType}</td>
-            <td>${t.code}</td>
-            <td>${t.amount} m</td>
-            <td>${t.stock} m</td>
-            <td>
-              <button class="btn btn-sm btn-warning action-btn" onclick="editTransaction(${index})">Sửa</button>
-              <button class="btn btn-sm btn-danger action-btn" onclick="deleteTransaction(${index})">Xóa</button>
-            </td>
-          </tr>`;
-        transactionsBody.innerHTML += row;
+        if (t && t.date && t.displayType && t.code && t.trees !== undefined && t.meters !== undefined && t.stockTrees !== undefined && t.stockMeters !== undefined) {
+          const row = `
+            <tr>
+              <td>${t.date}</td>
+              <td>${t.displayType}</td>
+              <td>${t.code}</td>
+              <td>${t.trees}</td>
+              <td>${t.meters.toFixed(1)} m</td>
+              <td>${t.stockTrees}</td>
+              <td>${t.stockMeters.toFixed(1)} m</td>
+              <td>
+                <button class="btn btn-sm btn-warning action-btn" onclick="editTransaction(${index})">Sửa</button>
+                <button class="btn btn-sm btn-danger action-btn" onclick="deleteTransaction(${index})">Xóa</button>
+              </td>
+            </tr>`;
+          transactionsBody.innerHTML += row;
+        }
       });
-    }
-
-    // Xử lý lệnh text
-    function processTextCommand() {
-      const command = document.getElementById('commandInput').value.toLowerCase().trim();
-      const date = document.getElementById('commandDate').value || today;
-      if (!command) {
-        document.getElementById('output').textContent = 'Vui lòng nhập lệnh!';
-        return;
-      }
-      document.getElementById('output').textContent = 'Lệnh: ' + command;
-      document.getElementById('commandInput').value = ''; // Xóa ô nhập
-      processCommand(command, date);
     }
 
     // Xử lý lệnh từ form
     function processFormCommand() {
       const type = document.getElementById('formType').value;
       const code = document.getElementById('formCode').value.trim().toUpperCase();
-      const amount = parseInt(document.getElementById('formAmount').value);
+      const trees = parseInt(document.getElementById('formTrees').value);
+      const meters = parseFloat(document.getElementById('formMeters').value);
       const date = document.getElementById('formDate').value || today;
       
-      if (!code || isNaN(amount) || amount <= 0) {
-        document.getElementById('output').textContent = 'Vui lòng nhập đầy đủ mã vải và số mét hợp lệ!';
+      if (!code || isNaN(trees) || trees < 0 || isNaN(meters) || meters <= 0) {
+        document.getElementById('output').textContent = 'Vui lòng nhập đầy đủ mã vải, số cây và số mét hợp lệ!';
         return;
       }
 
-      const command = `${type} ${code} ${amount}`;
-      document.getElementById('output').textContent = 'Lệnh: ' + command;
-      document.getElementById('formCode').value = '';
-      document.getElementById('formAmount').value = '';
-      processCommand(command, date);
-    }
-
-    // Gửi lệnh bằng phím Enter (cho ô nhập text)
-    document.getElementById('commandInput').addEventListener('keypress', function(event) {
-      if (event.key === 'Enter') {
-        processTextCommand();
+      // Kiểm tra số mét có đúng 1 chữ số thập phân
+      const metersStr = meters.toString();
+      const decimalPart = metersStr.split('.')[1];
+      if (decimalPart && decimalPart.length > 1) {
+        document.getElementById('output').textContent = 'Số mét chỉ được có 1 chữ số thập phân!';
+        return;
       }
-    });
 
-    // Xử lý lệnh
-    function processCommand(command, date) {
-      // Định dạng ngày thành DD/MM/YYYY
+      const formattedMeters = parseFloat(meters.toFixed(1));
       const formattedDate = new Date(date).toLocaleDateString('vi-VN');
-      let match;
+      let stockTrees = trees;
+      let stockMeters = formattedMeters;
 
-      // Lệnh tồn kho: "t a01 100", "t a01 100m", ...
-      if (match = command.match(/(?:hôm nay.*)?t\s+(\w+)\s+(\d+)(?:\s*mét|\s*m)?/i)) {
-        const code = match[1].toUpperCase();
-        const amount = parseInt(match[2]);
-        pendingCommand = { date: formattedDate, type: 't', displayType: 'tồn', code, amount, stock: amount };
-        showConfirmation(`Xác nhận cập nhật tồn kho mã ${code} là ${amount} mét vào ngày ${formattedDate}?`);
-      }
-      // Lệnh nhập: "n a01 50", "n a01 50m", ...
-      else if (match = command.match(/n\s+(\w+)\s+(\d+)(?:\s*mét|\s*m)?/i)) {
-        const code = match[1].toUpperCase();
-        const amount = parseInt(match[2]);
-        const newStock = (inventory[code] || 0) + amount;
-        pendingCommand = { date: formattedDate, type: 'n', displayType: 'nhập', code, amount, stock: newStock };
-        showConfirmation(`Xác nhận nhập mã ${code} ${amount} mét vào ngày ${formattedDate}? Tồn kho sẽ là ${newStock} mét.`);
-      }
-      // Lệnh xuất: "x a01 30", "x a01 30m", ...
-      else if (match = command.match(/x\s+(\w+)\s+(\d+)(?:\s*mét|\s*m)?/i)) {
-        const code = match[1].toUpperCase();
-        const amount = parseInt(match[2]);
-        if ((inventory[code] || 0) >= amount) {
-          const newStock = (inventory[code] || 0) - amount;
-          pendingCommand = { date: formattedDate, type: 'x', displayType: 'xuất', code, amount, stock: newStock };
-          showConfirmation(`Xác nhận xuất mã ${code} ${amount} mét vào ngày ${formattedDate}? Tồn kho sẽ là ${newStock} mét.`);
-        } else {
-          document.getElementById('output').textContent = `Lỗi: Không đủ tồn kho mã ${code}. Tồn kho hiện tại: ${inventory[code] || 0} mét.`;
+      if (type === 'n') {
+        stockTrees = (inventory[code]?.trees || 0) + trees;
+        stockMeters = (inventory[code]?.meters || 0) + formattedMeters;
+      } else if (type === 'x') {
+        if ((inventory[code]?.trees || 0) < trees || (inventory[code]?.meters || 0) < formattedMeters) {
+          document.getElementById('output').textContent = `Lỗi: Không đủ tồn kho mã ${code}. Tồn kho hiện tại: ${inventory[code]?.trees || 0} cây, ${(inventory[code]?.meters || 0).toFixed(1)} mét.`;
+          return;
         }
-      } else {
-        document.getElementById('output').textContent = 'Lệnh không hợp lệ: ' + command;
+        stockTrees = (inventory[code]?.trees || 0) - trees;
+        stockMeters = (inventory[code]?.meters || 0) - formattedMeters;
       }
+
+      const displayType = type === 't' ? 'tồn' : type === 'n' ? 'nhập' : 'xuất';
+      pendingCommand = { date: formattedDate, type, displayType, code, trees, meters: formattedMeters, stockTrees, stockMeters };
+      
+      showConfirmation(`Xác nhận ${displayType} mã ${code} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}? Tồn kho sẽ là ${stockTrees} cây, ${stockMeters.toFixed(1)} mét.`);
+      
+      document.getElementById('formCode').value = '';
+      document.getElementById('formTrees').value = '';
+      document.getElementById('formMeters').value = '';
     }
 
     // Hiển thị popup xác nhận
@@ -337,16 +323,8 @@
       // Xử lý nút xác nhận
       document.getElementById('confirmButton').onclick = function() {
         if (pendingCommand) {
-          if (pendingCommand.type === 't') {
-            inventory[pendingCommand.code] = pendingCommand.amount;
-            transactions.push(pendingCommand);
-          } else if (pendingCommand.type === 'n') {
-            inventory[pendingCommand.code] = pendingCommand.stock;
-            transactions.push(pendingCommand);
-          } else if (pendingCommand.type === 'x') {
-            inventory[pendingCommand.code] = pendingCommand.stock;
-            transactions.push(pendingCommand);
-          }
+          inventory[pendingCommand.code] = { trees: pendingCommand.stockTrees, meters: pendingCommand.stockMeters };
+          transactions.push(pendingCommand);
           saveData();
           updateUI();
           modal.hide();
@@ -371,9 +349,11 @@
     function editTransaction(index) {
       editingIndex = index;
       const t = transactions[index];
+      if (!t) return;
       document.getElementById('editType').value = t.type;
       document.getElementById('editCode').value = t.code;
-      document.getElementById('editAmount').value = t.amount;
+      document.getElementById('editTrees').value = t.trees;
+      document.getElementById('editMeters').value = t.meters.toFixed(1);
       // Chuyển định dạng ngày DD/MM/YYYY sang YYYY-MM-DD
       const [day, month, year] = t.date.split('/');
       document.getElementById('editDate').value = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
@@ -385,24 +365,38 @@
     document.getElementById('saveEditButton').onclick = function() {
       const type = document.getElementById('editType').value;
       const code = document.getElementById('editCode').value.trim().toUpperCase();
-      const amount = parseInt(document.getElementById('editAmount').value);
+      const trees = parseInt(document.getElementById('editTrees').value);
+      const meters = parseFloat(document.getElementById('editMeters').value);
       const date = document.getElementById('editDate').value;
 
-      if (!code || isNaN(amount) || amount <= 0) {
-        document.getElementById('output').textContent = 'Vui lòng nhập đầy đủ mã vải và số mét hợp lệ!';
+      if (!code || isNaN(trees) || trees < 0 || isNaN(meters) || meters <= 0) {
+        document.getElementById('output').textContent = 'Vui lòng nhập đầy đủ mã vải, số cây và số mét hợp lệ!';
         return;
       }
 
-      const formattedDate = new Date(date).toLocaleDateString('vi-VN');
-      const displayType = type === 't' ? 'tồn' : type === 'n' ? 'nhập' : 'xuất';
-      let stock = amount;
-      if (type === 'n') {
-        stock = (inventory[code] || 0) + amount - (transactions[editingIndex].type === 'n' ? transactions[editingIndex].amount : 0);
-      } else if (type === 'x') {
-        stock = (inventory[code] || 0) - amount + (transactions[editingIndex].type === 'x' ? transactions[editingIndex].amount : 0);
+      // Kiểm tra số mét có đúng 1 chữ số thập phân
+      const metersStr = meters.toString();
+      const decimalPart = metersStr.split('.')[1];
+      if (decimalPart && decimalPart.length > 1) {
+        document.getElementById('output').textContent = 'Số mét chỉ được có 1 chữ số thập phân!';
+        return;
       }
 
-      transactions[editingIndex] = { date: formattedDate, type, displayType, code, amount, stock };
+      const formattedMeters = parseFloat(meters.toFixed(1));
+      const formattedDate = new Date(date).toLocaleDateString('vi-VN');
+      const displayType = type === 't' ? 'tồn' : type === 'n' ? 'nhập' : 'xuất';
+      let stockTrees = trees;
+      let stockMeters = formattedMeters;
+
+      if (type === 'n') {
+        stockTrees = (inventory[code]?.trees || 0) + trees - (transactions[editingIndex].type === 'n' ? transactions[editingIndex].trees : 0);
+        stockMeters = (inventory[code]?.meters || 0) + formattedMeters - (transactions[editingIndex].type === 'n' ? transactions[editingIndex].meters : 0);
+      } else if (type === 'x') {
+        stockTrees = (inventory[code]?.trees || 0) - trees + (transactions[editingIndex].type === 'x' ? transactions[editingIndex].trees : 0);
+        stockMeters = (inventory[code]?.meters || 0) - formattedMeters + (transactions[editingIndex].type === 'x' ? transactions[editingIndex].meters : 0);
+      }
+
+      transactions[editingIndex] = { date: formattedDate, type, displayType, code, trees, meters: formattedMeters, stockTrees, stockMeters };
       recalculateInventory();
       saveData();
       updateUI();
