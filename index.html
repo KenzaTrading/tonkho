@@ -11,20 +11,59 @@
     #output { margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px; }
     .table { margin-top: 20px; }
     .btn { margin-right: 10px; }
-    #commandInput { width: 100%; }
+    #commandInput, #formInputs { width: 100%; }
     #confirmationModal .modal-body { font-size: 1.1em; }
+    .form-section { margin-bottom: 20px; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1 class="text-center mb-4">Quản lý kho vải</h1>
-    <div class="mb-3">
-      <label for="commandInput" class="form-label">Nhập lệnh (VD: t a01 100, n a01 50m, x a01 30):</label>
-      <div class="input-group">
-        <input type="text" class="form-control" id="commandInput" placeholder="Nhập lệnh tại đây">
-        <button class="btn btn-primary" onclick="processTextCommand()">Thực hiện</button>
+
+    <!-- Nhập lệnh text -->
+    <div class="form-section">
+      <h5>Nhập lệnh text</h5>
+      <div class="mb-3">
+        <label for="commandInput" class="form-label">Lệnh (VD: t a01 100, n a01 50m, x a01 30):</label>
+        <div class="input-group">
+          <input type="text" class="form-control" id="commandInput" placeholder="Nhập lệnh tại đây">
+          <button class="btn btn-primary" onclick="processTextCommand()">Thực hiện</button>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="commandDate" class="form-label">Ngày:</label>
+        <input type="date" class="form-control" id="commandDate" value="">
       </div>
     </div>
+
+    <!-- Form nhập liệu -->
+    <div class="form-section">
+      <h5>Nhập liệu qua form</h5>
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label for="formType" class="form-label">Loại lệnh:</label>
+          <select class="form-select" id="formType">
+            <option value="t">Tồn</option>
+            <option value="n">Nhập</option>
+            <option value="x">Xuất</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label for="formCode" class="form-label">Mã vải:</label>
+          <input type="text" class="form-control" id="formCode" placeholder="VD: A01">
+        </div>
+        <div class="col-md-3">
+          <label for="formAmount" class="form-label">Số mét:</label>
+          <input type="number" class="form-control" id="formAmount" placeholder="VD: 100">
+        </div>
+        <div class="col-md-3">
+          <label for="formDate" class="form-label">Ngày:</label>
+          <input type="date" class="form-control" id="formDate" value="">
+        </div>
+      </div>
+      <button class="btn btn-primary mt-3" onclick="processFormCommand()">Thực hiện</button>
+    </div>
+
     <div id="output" class="text-center">Kết quả sẽ hiển thị ở đây...</div>
 
     <h2 class="mt-4">Tồn kho hiện tại</h2>
@@ -77,6 +116,11 @@
     let transactions = [];
     let pendingCommand = null;
 
+    // Thiết lập ngày mặc định là hôm nay
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('commandDate').value = today;
+    document.getElementById('formDate').value = today;
+
     // Hàm lưu dữ liệu vào localStorage
     function saveData() {
       localStorage.setItem('inventory', JSON.stringify(inventory));
@@ -110,12 +154,36 @@
     // Xử lý lệnh text
     function processTextCommand() {
       const command = document.getElementById('commandInput').value.toLowerCase().trim();
+      const date = document.getElementById('commandDate').value;
+      if (!command) {
+        document.getElementById('output').textContent = 'Vui lòng nhập lệnh!';
+        return;
+      }
       document.getElementById('output').textContent = 'Lệnh: ' + command;
-      document.getElementById('commandInput').value = ''; // Xóa ô nhập sau khi xử lý
-      processCommand(command);
+      document.getElementById('commandInput').value = ''; // Xóa ô nhập
+      processCommand(command, date || today);
     }
 
-    // Gửi lệnh bằng phím Enter
+    // Xử lý lệnh từ form
+    function processFormCommand() {
+      const type = document.getElementById('formType').value;
+      const code = document.getElementById('formCode').value.trim().toUpperCase();
+      const amount = parseInt(document.getElementById('formAmount').value);
+      const date = document.getElementById('formDate').value;
+      
+      if (!code || isNaN(amount) || amount <= 0) {
+        document.getElementById('output').textContent = 'Vui lòng nhập đầy đủ mã vải và số mét hợp lệ!';
+        return;
+      }
+
+      const command = `${type} ${code} ${amount}`;
+      document.getElementById('output').textContent = 'Lệnh: ' + command;
+      document.getElementById('formCode').value = '';
+      document.getElementById('formAmount').value = '';
+      processCommand(command, date || today);
+    }
+
+    // Gửi lệnh bằng phím Enter (cho ô nhập text)
     document.getElementById('commandInput').addEventListener('keypress', function(event) {
       if (event.key === 'Enter') {
         processTextCommand();
@@ -123,8 +191,7 @@
     });
 
     // Xử lý lệnh
-    function processCommand(command) {
-      const date = new Date().toLocaleDateString('vi-VN');
+    function processCommand(command, date) {
       let match;
 
       // Lệnh tồn kho: "t a01 100", "t a01 100m", ...
@@ -132,7 +199,7 @@
         const code = match[1].toUpperCase();
         const amount = parseInt(match[2]);
         pendingCommand = { date, type: 't', displayType: 'tồn', code, amount, stock: amount };
-        showConfirmation(`Xác nhận cập nhật tồn kho mã ${code} là ${amount} mét?`);
+        showConfirmation(`Xác nhận cập nhật tồn kho mã ${code} là ${amount} mét vào ngày ${date}?`);
       }
       // Lệnh nhập: "n a01 50", "n a01 50m", ...
       else if (match = command.match(/n (\w+) (\d+)(?: mét|m)?/)) {
@@ -140,7 +207,7 @@
         const amount = parseInt(match[2]);
         const newStock = (inventory[code] || 0) + amount;
         pendingCommand = { date, type: 'n', displayType: 'nhập', code, amount, stock: newStock };
-        showConfirmation(`Xác nhận nhập mã ${code} ${amount} mét? Tồn kho sẽ là ${newStock} mét.`);
+        showConfirmation(`Xác nhận nhập mã ${code} ${amount} mét vào ngày ${date}? Tồn kho sẽ là ${newStock} mét.`);
       }
       // Lệnh xuất: "x a01 30", "x a01 30m", ...
       else if (match = command.match(/x (\w+) (\d+)(?: mét|m)?/)) {
@@ -149,7 +216,7 @@
         if (inventory[code] >= amount) {
           const newStock = inventory[code] - amount;
           pendingCommand = { date, type: 'x', displayType: 'xuất', code, amount, stock: newStock };
-          showConfirmation(`Xác nhận xuất mã ${code} ${amount} mét? Tồn kho sẽ là ${newStock} mét.`);
+          showConfirmation(`Xác nhận xuất mã ${code} ${amount} mét vào ngày ${date}? Tồn kho sẽ là ${newStock} mét.`);
         } else {
           document.getElementById('output').textContent = `Lỗi: Không đủ tồn kho mã ${code}. Tồn kho hiện tại: ${inventory[code] || 0} mét.`;
         }
