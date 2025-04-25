@@ -184,32 +184,8 @@
     </div>
   </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // Cấu hình Firebase (thay bằng cấu hình của bạn từ Firebase Console)
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      databaseURL: "YOUR_DATABASE_URL",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
-
-    // Khởi tạo Firebase
-    let database;
-    try {
-      firebase.initializeApp(firebaseConfig);
-      database = firebase.database();
-    } catch (error) {
-      console.error('Lỗi khởi tạo Firebase:', error);
-      document.getElementById('output').textContent = 'Lỗi kết nối Firebase. Vui lòng kiểm tra cấu hình!';
-    }
-
     // Dữ liệu kho
     let inventory = {};
     let transactions = [];
@@ -221,60 +197,29 @@
     document.getElementById('commandDate').value = today;
     document.getElementById('formDate').value = today;
 
-    // Hàm lưu dữ liệu vào Firebase
+    // Hàm lưu dữ liệu vào localStorage
     function saveData() {
-      if (!database) {
-        document.getElementById('output').textContent = 'Lỗi: Không thể kết nối Firebase!';
-        return;
-      }
-      database.ref('inventory').set(inventory, (error) => {
-        if (error) {
-          console.error('Lỗi lưu inventory:', error);
-          document.getElementById('output').textContent = 'Lỗi lưu dữ liệu tồn kho!';
-        }
-      });
-      database.ref('transactions').set(transactions, (error) => {
-        if (error) {
-          console.error('Lỗi lưu transactions:', error);
-          document.getElementById('output').textContent = 'Lỗi lưu dữ liệu giao dịch!';
-        }
-      });
+      localStorage.setItem('inventory', JSON.stringify(inventory));
+      localStorage.setItem('transactions', JSON.stringify(transactions));
     }
 
-    // Hàm tải dữ liệu từ Firebase
+    // Hàm tải dữ liệu từ localStorage
     function loadData() {
-      if (!database) {
-        document.getElementById('output').textContent = 'Lỗi: Không thể kết nối Firebase!';
-        return;
-      }
-      database.ref('inventory').on('value', (snapshot) => {
-        inventory = snapshot.val() || {};
-        updateUI();
-      }, (error) => {
-        console.error('Lỗi tải inventory:', error);
-        document.getElementById('output').textContent = 'Lỗi tải dữ liệu tồn kho!';
-      });
-      database.ref('transactions').on('value', (snapshot) => {
-        transactions = snapshot.val() || [];
-        updateUI();
-      }, (error) => {
-        console.error('Lỗi tải transactions:', error);
-        document.getElementById('output').textContent = 'Lỗi tải dữ liệu giao dịch!';
-      });
+      inventory = JSON.parse(localStorage.getItem('inventory') || '{}');
+      transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+      updateUI();
     }
 
     // Hàm tính toán lại tồn kho từ lịch sử giao dịch
     function recalculateInventory() {
       inventory = {};
       transactions.forEach(t => {
-        if (t && t.type && t.code && t.amount !== undefined) {
-          if (t.type === 't') {
-            inventory[t.code] = t.amount;
-          } else if (t.type === 'n') {
-            inventory[t.code] = (inventory[t.code] || 0) + t.amount;
-          } else if (t.type === 'x') {
-            inventory[t.code] = (inventory[t.code] || 0) - t.amount;
-          }
+        if (t.type === 't') {
+          inventory[t.code] = t.amount;
+        } else if (t.type === 'n') {
+          inventory[t.code] = (inventory[t.code] || 0) + t.amount;
+        } else if (t.type === 'x') {
+          inventory[t.code] = (inventory[t.code] || 0) - t.amount;
         }
       });
     }
@@ -291,21 +236,19 @@
       const transactionsBody = document.getElementById('transactions');
       transactionsBody.innerHTML = '';
       transactions.forEach((t, index) => {
-        if (t && t.date && t.displayType && t.code && t.amount !== undefined && t.stock !== undefined) {
-          const row = `
-            <tr>
-              <td>${t.date}</td>
-              <td>${t.displayType}</td>
-              <td>${t.code}</td>
-              <td>${t.amount} m</td>
-              <td>${t.stock} m</td>
-              <td>
-                <button class="btn btn-sm btn-warning action-btn" onclick="editTransaction(${index})">Sửa</button>
-                <button class="btn btn-sm btn-danger action-btn" onclick="deleteTransaction(${index})">Xóa</button>
-              </td>
-            </tr>`;
-          transactionsBody.innerHTML += row;
-        }
+        const row = `
+          <tr>
+            <td>${t.date}</td>
+            <td>${t.displayType}</td>
+            <td>${t.code}</td>
+            <td>${t.amount} m</td>
+            <td>${t.stock} m</td>
+            <td>
+              <button class="btn btn-sm btn-warning action-btn" onclick="editTransaction(${index})">Sửa</button>
+              <button class="btn btn-sm btn-danger action-btn" onclick="deleteTransaction(${index})">Xóa</button>
+            </td>
+          </tr>`;
+        transactionsBody.innerHTML += row;
       });
     }
 
@@ -350,6 +293,7 @@
 
     // Xử lý lệnh
     function processCommand(command, date) {
+      // Định dạng ngày thành DD/MM/YYYY
       const formattedDate = new Date(date).toLocaleDateString('vi-VN');
       let match;
 
@@ -418,6 +362,7 @@
         transactions.splice(index, 1);
         recalculateInventory();
         saveData();
+        updateUI();
         document.getElementById('output').textContent = 'Đã xóa giao dịch!';
       }
     }
@@ -426,7 +371,6 @@
     function editTransaction(index) {
       editingIndex = index;
       const t = transactions[index];
-      if (!t) return;
       document.getElementById('editType').value = t.type;
       document.getElementById('editCode').value = t.code;
       document.getElementById('editAmount').value = t.amount;
@@ -461,6 +405,7 @@
       transactions[editingIndex] = { date: formattedDate, type, displayType, code, amount, stock };
       recalculateInventory();
       saveData();
+      updateUI();
       bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
       document.getElementById('output').textContent = 'Đã chỉnh sửa giao dịch!';
       editingIndex = null;
