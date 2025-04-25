@@ -11,17 +11,21 @@
     #output { margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px; }
     .table { margin-top: 20px; }
     .btn { margin-right: 10px; }
+    #commandInput { width: 100%; }
     #confirmationModal .modal-body { font-size: 1.1em; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1 class="text-center mb-4">Quản lý kho vải</h1>
-    <div class="d-flex justify-content-center mb-3">
-      <button class="btn btn-primary" onclick="startRecognition()">Bắt đầu nhận diện giọng nói</button>
-      <button class="btn btn-secondary" onclick="stopRecognition()">Dừng nhận diện</button>
+    <div class="mb-3">
+      <label for="commandInput" class="form-label">Nhập lệnh (VD: Tồn mã A01 100m, Nhập mã A01 50m):</label>
+      <div class="input-group">
+        <input type="text" class="form-control" id="commandInput" placeholder="Nhập lệnh tại đây">
+        <button class="btn btn-primary" onclick="processTextCommand()">Thực hiện</button>
+      </div>
     </div>
-    <div id="output" class="text-center">Kết quả giọng nói sẽ hiển thị ở đây...</div>
+    <div id="output" class="text-center">Kết quả sẽ hiển thị ở đây...</div>
 
     <h2 class="mt-4">Tồn kho hiện tại</h2>
     <table class="table table-bordered">
@@ -103,47 +107,34 @@
       });
     }
 
-    // Nhận diện giọng nói
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = 'vi-VN';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onresult = function(event) {
-      const transcript = event.results[0][0].transcript.toLowerCase();
-      document.getElementById('output').textContent = 'Đã nghe: ' + transcript;
-      processCommand(transcript);
-    };
-
-    recognition.onerror = function(event) {
-      document.getElementById('output').textContent = 'Lỗi: ' + event.error;
-      speak('Có lỗi khi nhận diện giọng nói. Vui lòng thử lại.');
-    };
-
-    function startRecognition() {
-      recognition.start();
-      document.getElementById('output').textContent = 'Đang lắng nghe...';
-      speak('Đang lắng nghe lệnh của bạn.');
+    // Xử lý lệnh text
+    function processTextCommand() {
+      const command = document.getElementById('commandInput').value.toLowerCase().trim();
+      document.getElementById('output').textContent = 'Lệnh: ' + command;
+      document.getElementById('commandInput').value = ''; // Xóa ô nhập sau khi xử lý
+      processCommand(command);
     }
 
-    function stopRecognition() {
-      recognition.stop();
-      document.getElementById('output').textContent = 'Đã dừng nhận diện.';
-    }
+    // Gửi lệnh bằng phím Enter
+    document.getElementById('commandInput').addEventListener('keypress', function(event) {
+      if (event.key === 'Enter') {
+        processTextCommand();
+      }
+    });
 
-    // Xử lý lệnh thoại
+    // Xử lý lệnh
     function processCommand(command) {
       const date = new Date().toLocaleDateString('vi-VN');
       let match;
 
-      // Lệnh tồn kho: "tồn kho mã A01 100 mét", "hôm nay tồn mã A01 100m", ...
+      // Lệnh tồn kho: "tồn mã A01 100m", "tồn kho mã A01 100 mét", ...
       if (match = command.match(/(?:hôm nay.*)?tồn(?: kho)? mã (\w+) (\d+)(?: mét|m)?/)) {
         const code = match[1].toUpperCase();
         const amount = parseInt(match[2]);
         pendingCommand = { date, type: 'tồn', code, amount, stock: amount };
         showConfirmation(`Xác nhận cập nhật tồn kho mã ${code} là ${amount} mét?`);
       }
-      // Lệnh nhập: "nhập mã A01 50 mét", "nhập thêm mã A01 50m", ...
+      // Lệnh nhập: "nhập mã A01 50m", "nhập thêm mã A01 50 mét", ...
       else if (match = command.match(/(?:nhập(?: thêm)?) mã (\w+) (\d+)(?: mét|m)?/)) {
         const code = match[1].toUpperCase();
         const amount = parseInt(match[2]);
@@ -151,7 +142,7 @@
         pendingCommand = { date, type: 'nhập', code, amount, stock: newStock };
         showConfirmation(`Xác nhận nhập mã ${code} ${amount} mét? Tồn kho sẽ là ${newStock} mét.`);
       }
-      // Lệnh xuất: "xuất mã A01 30 mét", "xuất kho mã A01 30m", ...
+      // Lệnh xuất: "xuất mã A01 30m", "xuất kho mã A01 30 mét", ...
       else if (match = command.match(/(?:xuất(?: kho)?) mã (\w+) (\d+)(?: mét|m)?/)) {
         const code = match[1].toUpperCase();
         const amount = parseInt(match[2]);
@@ -164,7 +155,7 @@
           document.getElementById('output').textContent = `Lỗi: Không đủ tồn kho mã ${code}.`;
         }
       } else {
-        speak('Lệnh không hợp lệ. Vui lòng thử lại.');
+        speak('Lệnh không hợp lệ. Vui lòng nhập lại.');
         document.getElementById('output').textContent = 'Lệnh không hợp lệ: ' + command;
       }
     }
