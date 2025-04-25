@@ -184,8 +184,26 @@
     </div>
   </div>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    // Cấu hình Firebase (thay bằng cấu hình của bạn từ Firebase Console)
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      databaseURL: "YOUR_DATABASE_URL",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    // Khởi tạo Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
     // Dữ liệu kho
     let inventory = {};
     let transactions = [];
@@ -197,17 +215,22 @@
     document.getElementById('commandDate').value = today;
     document.getElementById('formDate').value = today;
 
-    // Hàm lưu dữ liệu vào localStorage
+    // Hàm lưu dữ liệu vào Firebase
     function saveData() {
-      localStorage.setItem('inventory', JSON.stringify(inventory));
-      localStorage.setItem('transactions', JSON.stringify(transactions));
+      database.ref('inventory').set(inventory);
+      database.ref('transactions').set(transactions);
     }
 
-    // Hàm tải dữ liệu từ localStorage
+    // Hàm tải dữ liệu từ Firebase
     function loadData() {
-      inventory = JSON.parse(localStorage.getItem('inventory') || '{}');
-      transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-      updateUI();
+      database.ref('inventory').on('value', (snapshot) => {
+        inventory = snapshot.val() || {};
+        updateUI();
+      });
+      database.ref('transactions').on('value', (snapshot) => {
+        transactions = snapshot.val() || [];
+        updateUI();
+      });
     }
 
     // Hàm tính toán lại tồn kho từ lịch sử giao dịch
@@ -316,7 +339,7 @@
       else if (match = command.match(/x\s+(\w+)\s+(\d+)(?:\s*mét|\s*m)?/i)) {
         const code = match[1].toUpperCase();
         const amount = parseInt(match[2]);
-        if ((inventory[code] || 0) >= amount) {
+        if ((inventory/code] || 0) >= amount) {
           const newStock = (inventory[code] || 0) - amount;
           pendingCommand = { date: formattedDate, type: 'x', displayType: 'xuất', code, amount, stock: newStock };
           showConfirmation(`Xác nhận xuất mã ${code} ${amount} mét vào ngày ${formattedDate}? Tồn kho sẽ là ${newStock} mét.`);
@@ -362,7 +385,6 @@
         transactions.splice(index, 1);
         recalculateInventory();
         saveData();
-        updateUI();
         document.getElementById('output').textContent = 'Đã xóa giao dịch!';
       }
     }
@@ -405,7 +427,6 @@
       transactions[editingIndex] = { date: formattedDate, type, displayType, code, amount, stock };
       recalculateInventory();
       saveData();
-      updateUI();
       bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
       document.getElementById('output').textContent = 'Đã chỉnh sửa giao dịch!';
       editingIndex = null;
