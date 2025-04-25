@@ -19,7 +19,7 @@
   <div class="container">
     <h1 class="text-center mb-4">Quản lý kho vải</h1>
     <div class="mb-3">
-      <label for="commandInput" class="form-label">Nhập lệnh (VD: t mã A01 100m, n mã A01 50m, x mã A01 30m):</label>
+      <label for="commandInput" class="form-label">Nhập lệnh (VD: t a01 100, n a01 50m, x a01 30):</label>
       <div class="input-group">
         <input type="text" class="form-control" id="commandInput" placeholder="Nhập lệnh tại đây">
         <button class="btn btn-primary" onclick="processTextCommand()">Thực hiện</button>
@@ -127,23 +127,23 @@
       const date = new Date().toLocaleDateString('vi-VN');
       let match;
 
-      // Lệnh tồn kho: "t mã A01 100m", "t mã A01 100 mét", ...
-      if (match = command.match(/(?:hôm nay.*)?t mã (\w+) (\d+)(?: mét|m)?/)) {
+      // Lệnh tồn kho: "t a01 100", "t a01 100m", ...
+      if (match = command.match(/(?:hôm nay.*)?t (\w+) (\d+)(?: mét|m)?/)) {
         const code = match[1].toUpperCase();
         const amount = parseInt(match[2]);
         pendingCommand = { date, type: 't', displayType: 'tồn', code, amount, stock: amount };
         showConfirmation(`Xác nhận cập nhật tồn kho mã ${code} là ${amount} mét?`);
       }
-      // Lệnh nhập: "n mã A01 50m", "n mã A01 50 mét", ...
-      else if (match = command.match(/n mã (\w+) (\d+)(?: mét|m)?/)) {
+      // Lệnh nhập: "n a01 50", "n a01 50m", ...
+      else if (match = command.match(/n (\w+) (\d+)(?: mét|m)?/)) {
         const code = match[1].toUpperCase();
         const amount = parseInt(match[2]);
         const newStock = (inventory[code] || 0) + amount;
         pendingCommand = { date, type: 'n', displayType: 'nhập', code, amount, stock: newStock };
         showConfirmation(`Xác nhận nhập mã ${code} ${amount} mét? Tồn kho sẽ là ${newStock} mét.`);
       }
-      // Lệnh xuất: "x mã A01 30m", "x mã A01 30 mét", ...
-      else if (match = command.match(/x mã (\w+) (\d+)(?: mét|m)?/)) {
+      // Lệnh xuất: "x a01 30", "x a01 30m", ...
+      else if (match = command.match(/x (\w+) (\d+)(?: mét|m)?/)) {
         const code = match[1].toUpperCase();
         const amount = parseInt(match[2]);
         if (inventory[code] >= amount) {
