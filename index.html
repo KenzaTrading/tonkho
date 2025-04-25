@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản lý kho vải</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    #output { margin-top: 20px; padding: 10px; border: 1px solid #ccc; }
+    #inventory, #transactions { margin-top: 20px; }
+    button { padding: 10px 20px; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h1>Quản lý kho vải</h1>
+  <button onclick="startRecognition()">Bắt đầu nhận diện giọng nói</button>
+  <button onclick="stopRecognition()">Dừng nhận diện</button>
+  <div id="output">Kết quả giọng nói sẽ hiển thị ở đây...</div>
+  <h2>Tồn kho hiện tại</h2>
+  <pre id="inventory"></pre>
+  <h2>Lịch sử giao dịch</h2>
+  <pre id="transactions"></pre>
+
+  <script>
+    // Dữ liệu kho
+    let inventory = {};
+    let transactions = [];
+
+    // Hàm lưu dữ liệu vào localStorage
+    function saveData() {
+      localStorage.setItem('inventory', JSON.stringify(inventory));
+      localStorage.setItem('transactions', JSON.stringify(transactions));
+    }
+
+    // Hàm tải dữ liệu từ localStorage
+    function loadData() {
+      inventory = JSON.parse(localStorage.getItem('inventory') || '{}');
+      transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+      updateUI();
+    }
+
+    // Cập nhật giao diện
+    function updateUI() {
+      document.getElementById('inventory').textContent = JSON.stringify(inventory, null, 2);
+      document.getElementById('transactions').textContent = JSON.stringify(transactions, null, 2);
+    }
+
+    // Nhận diện giọng nói
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'vi-VN';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = function(event) {
+      const transcript = event.results[0][0].transcript.toLowerCase();
+      document.getElementById('output').textContent = 'Đã nghe: ' + transcript;
+      processCommand(transcript);
+    };
+
+    recognition.onerror = function(event) {
+      document.getElementById('output').textContent = 'Lỗi: ' + event.error;
+    };
+
+    function startRecognition() {
+      recognition.start();
+      document.getElementById('output').textContent = 'Đang lắng nghe...';
+    }
+
+    function stopRecognition() {
+      recognition.stop();
+      document.getElementById('output').textContent = 'Đã dừng nhận diện.';
+    }
+
+    // Xử lý lệnh thoại
+    function processCommand(command) {
+      const date = new Date().toLocaleDateString('vi-VN');
+      let match;
+
+      // Lệnh "tồn mã A01 100m"
+      if (match = command.match(/tồn mã (\w+) (\d+)m/)) {
+        const code = match[1].toUpperCase();
+        const amount = parseInt(match[2]);
+        inventory[code] = amount;
+        transactions.push({ date, type: 'tồn', code, amount, stock: amount });
+        saveData();
+        updateUI();
+        speak(`Đã cập nhật tồn kho mã ${code} là ${amount} mét.`);
+      }
+      // Lệnh "nhập mã A01 50m"
+      else if (match = command.match(/nhập mã (\w+) (\d+)m/)) {
+        const code = match[1].toUpperCase();
+        const amount = parseInt(match[2]);
+        inventory[code] = (inventory[code] || 0) + amount;
+        transactions.push({ date, type: 'nhập', code, amount, stock: inventory[code] });
+        saveData();
+        updateUI();
+        speak(`Đã nhập mã ${code} ${amount} mét. Tồn kho hiện tại: ${inventory[code]} mét.`);
+      }
+      // Lệnh "xuất mã A01 30m"
+      else if (match = command.match(/xuất mã (\w+) (\d+)m/)) {
+        const code = match[1].toUpperCase();
+        const amount = parseInt(match[2]);
+        if (inventory[code] >= amount) {
+          inventory[code] -= amount;
+          transactions.push({ date, type: 'xuất', code, amount, stock: inventory[code] });
+          saveData();
+          updateUI();
+          speak(`Đã xuất mã ${code} ${amount} mét. Tồn kho hiện tại: ${inventory[code]} mét.`);
+        } else {
+          speak(`Không đủ tồn kho mã ${code}. Tồn kho hiện tại: ${inventory[code] || 0} mét.`);
+        }
+      } else {
+        speak('Lệnh không hợp lệ. Vui lòng thử lại.');
+      }
+    }
+
+    // Hàm phát giọng nói
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'vi-VN';
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // Tải dữ liệu khi khởi động
+    loadData();
+  </script>
+</body>
+</html>
