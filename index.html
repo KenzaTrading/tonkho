@@ -4,22 +4,49 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quản lý kho vải</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    #output { margin-top: 20px; padding: 10px; border: 1px solid #ccc; }
-    #inventory, #transactions { margin-top: 20px; }
-    button { padding: 10px 20px; font-size: 16px; }
+    body { padding: 20px; }
+    .container { max-width: 800px; }
+    #output { margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px; }
+    .table { margin-top: 20px; }
+    .btn { margin-right: 10px; }
   </style>
 </head>
 <body>
-  <h1>Quản lý kho vải</h1>
-  <button onclick="startRecognition()">Bắt đầu nhận diện giọng nói</button>
-  <button onclick="stopRecognition()">Dừng nhận diện</button>
-  <div id="output">Kết quả giọng nói sẽ hiển thị ở đây...</div>
-  <h2>Tồn kho hiện tại</h2>
-  <pre id="inventory"></pre>
-  <h2>Lịch sử giao dịch</h2>
-  <pre id="transactions"></pre>
+  <div class="container">
+    <h1 class="text-center mb-4">Quản lý kho vải</h1>
+    <div class="d-flex justify-content-center mb-3">
+      <button class="btn btn-primary" onclick="startRecognition()">Bắt đầu nhận diện giọng nói</button>
+      <button class="btn btn-secondary" onclick="stopRecognition()">Dừng nhận diện</button>
+    </div>
+    <div id="output" class="text-center">Kết quả giọng nói sẽ hiển thị ở đây...</div>
+
+    <h2 class="mt-4">Tồn kho hiện tại</h2>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Mã vải</th>
+          <th>Số mét</th>
+        </tr>
+      </thead>
+      <tbody id="inventory"></tbody>
+    </table>
+
+    <h2 class="mt-4">Lịch sử giao dịch</h2>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Ngày</th>
+          <th>Loại</th>
+          <th>Mã vải</th>
+          <th>Số mét</th>
+          <th>Tồn kho</th>
+        </tr>
+      </thead>
+      <tbody id="transactions"></tbody>
+    </table>
+  </div>
 
   <script>
     // Dữ liệu kho
@@ -41,8 +68,21 @@
 
     // Cập nhật giao diện
     function updateUI() {
-      document.getElementById('inventory').textContent = JSON.stringify(inventory, null, 2);
-      document.getElementById('transactions').textContent = JSON.stringify(transactions, null, 2);
+      // Cập nhật bảng tồn kho
+      const inventoryBody = document.getElementById('inventory');
+      inventoryBody.innerHTML = '';
+      for (const [code, amount] of Object.entries(inventory)) {
+        const row = `<tr><td>${code}</td><td>${amount} m</td></tr>`;
+        inventoryBody.innerHTML += row;
+      }
+
+      // Cập nhật bảng lịch sử giao dịch
+      const transactionsBody = document.getElementById('transactions');
+      transactionsBody.innerHTML = '';
+      transactions.forEach(t => {
+        const row = `<tr><td>${t.date}</td><td>${t.type}</td><td>${t.code}</td><td>${t.amount} m</td><td>${t.stock} m</td></tr>`;
+        transactionsBody.innerHTML += row;
+      });
     }
 
     // Nhận diện giọng nói
@@ -76,8 +116,8 @@
       const date = new Date().toLocaleDateString('vi-VN');
       let match;
 
-      // Lệnh "tồn mã A01 100m"
-      if (match = command.match(/tồn mã (\w+) (\d+)m/)) {
+      // Lệnh "tồn mã A01 100m" hoặc "hôm nay ngày 25/4 tồn mã A01 100m"
+      if (match = command.match(/(?:hôm nay.*)?tồn mã (\w+) (\d+)m/)) {
         const code = match[1].toUpperCase();
         const amount = parseInt(match[2]);
         inventory[code] = amount;
