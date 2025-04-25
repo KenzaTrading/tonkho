@@ -201,8 +201,14 @@
     };
 
     // Khởi tạo Firebase
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+    let database;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      database = firebase.database();
+    } catch (error) {
+      console.error('Lỗi khởi tạo Firebase:', error);
+      document.getElementById('output').textContent = 'Lỗi kết nối Firebase. Vui lòng kiểm tra cấu hình!';
+    }
 
     // Dữ liệu kho
     let inventory = {};
@@ -217,19 +223,43 @@
 
     // Hàm lưu dữ liệu vào Firebase
     function saveData() {
-      database.ref('inventory').set(inventory);
-      database.ref('transactions').set(transactions);
+      if (!database) {
+        document.getElementById('output').textContent = 'Lỗi: Không thể kết nối Firebase!';
+        return;
+      }
+      database.ref('inventory').set(inventory, (error) => {
+        if (error) {
+          console.error('Lỗi lưu inventory:', error);
+          document.getElementById('output').textContent = 'Lỗi lưu dữ liệu tồn kho!';
+        }
+      });
+      database.ref('transactions').set(transactions, (error) => {
+        if (error) {
+          console.error('Lỗi lưu transactions:', error);
+          document.getElementById('output').textContent = 'Lỗi lưu dữ liệu giao dịch!';
+        }
+      });
     }
 
     // Hàm tải dữ liệu từ Firebase
     function loadData() {
+      if (!database) {
+        document.getElementById('output').textContent = 'Lỗi: Không thể kết nối Firebase!';
+        return;
+      }
       database.ref('inventory').on('value', (snapshot) => {
         inventory = snapshot.val() || {};
         updateUI();
+      }, (error) => {
+        console.error('Lỗi tải inventory:', error);
+        document.getElementById('output').textContent = 'Lỗi tải dữ liệu tồn kho!';
       });
       database.ref('transactions').on('value', (snapshot) => {
         transactions = snapshot.val() || [];
         updateUI();
+      }, (error) => {
+        console.error('Lỗi tải transactions:', error);
+        document.getElementById('output').textContent = 'Lỗi tải dữ liệu giao dịch!';
       });
     }
 
@@ -237,12 +267,14 @@
     function recalculateInventory() {
       inventory = {};
       transactions.forEach(t => {
-        if (t.type === 't') {
-          inventory[t.code] = t.amount;
-        } else if (t.type === 'n') {
-          inventory[t.code] = (inventory[t.code] || 0) + t.amount;
-        } else if (t.type === 'x') {
-          inventory[t.code] = (inventory[t.code] || 0) - t.amount;
+        if (t && t.type && t.code && t.amount !== undefined) {
+          if (t.type === 't') {
+            inventory[t.code] = t.amount;
+          } else if (t.type === 'n') {
+            inventory[t.code] = (inventory[t.code] || 0) + t.amount;
+          } else if (t.type === 'x') {
+            inventory[t.code] = (inventory[t.code] || 0) - t.amount;
+          }
         }
       });
     }
@@ -259,19 +291,21 @@
       const transactionsBody = document.getElementById('transactions');
       transactionsBody.innerHTML = '';
       transactions.forEach((t, index) => {
-        const row = `
-          <tr>
-            <td>${t.date}</td>
-            <td>${t.displayType}</td>
-            <td>${t.code}</td>
-            <td>${t.amount} m</td>
-            <td>${t.stock} m</td>
-            <td>
-              <button class="btn btn-sm btn-warning action-btn" onclick="editTransaction(${index})">Sửa</button>
-              <button class="btn btn-sm btn-danger action-btn" onclick="deleteTransaction(${index})">Xóa</button>
-            </td>
-          </tr>`;
-        transactionsBody.innerHTML += row;
+        if (t && t.date && t.displayType && t.code && t.amount !== undefined && t.stock !== undefined) {
+          const row = `
+            <tr>
+              <td>${t.date}</td>
+              <td>${t.displayType}</td>
+              <td>${t.code}</td>
+              <td>${t.amount} m</td>
+              <td>${t.stock} m</td>
+              <td>
+                <button class="btn btn-sm btn-warning action-btn" onclick="editTransaction(${index})">Sửa</button>
+                <button class="btn btn-sm btn-danger action-btn" onclick="deleteTransaction(${index})">Xóa</button>
+              </td>
+            </tr>`;
+          transactionsBody.innerHTML += row;
+        }
       });
     }
 
@@ -316,7 +350,6 @@
 
     // Xử lý lệnh
     function processCommand(command, date) {
-      // Định dạng ngày thành DD/MM/YYYY
       const formattedDate = new Date(date).toLocaleDateString('vi-VN');
       let match;
 
@@ -339,7 +372,7 @@
       else if (match = command.match(/x\s+(\w+)\s+(\d+)(?:\s*mét|\s*m)?/i)) {
         const code = match[1].toUpperCase();
         const amount = parseInt(match[2]);
-        if ((inventory/code] || 0) >= amount) {
+        if ((inventory[code] || 0) >= amount) {
           const newStock = (inventory[code] || 0) - amount;
           pendingCommand = { date: formattedDate, type: 'x', displayType: 'xuất', code, amount, stock: newStock };
           showConfirmation(`Xác nhận xuất mã ${code} ${amount} mét vào ngày ${formattedDate}? Tồn kho sẽ là ${newStock} mét.`);
@@ -393,6 +426,7 @@
     function editTransaction(index) {
       editingIndex = index;
       const t = transactions[index];
+      if (!t) return;
       document.getElementById('editType').value = t.type;
       document.getElementById('editCode').value = t.code;
       document.getElementById('editAmount').value = t.amount;
