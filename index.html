@@ -255,14 +255,14 @@
     // Xử lý lệnh text
     function processTextCommand() {
       const command = document.getElementById('commandInput').value.toLowerCase().trim();
-      const date = document.getElementById('commandDate').value;
+      const date = document.getElementById('commandDate').value || today;
       if (!command) {
         document.getElementById('output').textContent = 'Vui lòng nhập lệnh!';
         return;
       }
       document.getElementById('output').textContent = 'Lệnh: ' + command;
       document.getElementById('commandInput').value = ''; // Xóa ô nhập
-      processCommand(command, date || today);
+      processCommand(command, date);
     }
 
     // Xử lý lệnh từ form
@@ -270,7 +270,7 @@
       const type = document.getElementById('formType').value;
       const code = document.getElementById('formCode').value.trim().toUpperCase();
       const amount = parseInt(document.getElementById('formAmount').value);
-      const date = document.getElementById('formDate').value;
+      const date = document.getElementById('formDate').value || today;
       
       if (!code || isNaN(amount) || amount <= 0) {
         document.getElementById('output').textContent = 'Vui lòng nhập đầy đủ mã vải và số mét hợp lệ!';
@@ -281,7 +281,7 @@
       document.getElementById('output').textContent = 'Lệnh: ' + command;
       document.getElementById('formCode').value = '';
       document.getElementById('formAmount').value = '';
-      processCommand(command, date || today);
+      processCommand(command, date);
     }
 
     // Gửi lệnh bằng phím Enter (cho ô nhập text)
@@ -293,31 +293,33 @@
 
     // Xử lý lệnh
     function processCommand(command, date) {
+      // Định dạng ngày thành DD/MM/YYYY
+      const formattedDate = new Date(date).toLocaleDateString('vi-VN');
       let match;
 
       // Lệnh tồn kho: "t a01 100", "t a01 100m", ...
-      if (match = command.match(/(?:hôm nay.*)?t (\w+) (\d+)(?: mét|m)?/)) {
+      if (match = command.match(/(?:hôm nay.*)?t\s+(\w+)\s+(\d+)(?:\s*mét|\s*m)?/i)) {
         const code = match[1].toUpperCase();
         const amount = parseInt(match[2]);
-        pendingCommand = { date, type: 't', displayType: 'tồn', code, amount, stock: amount };
-        showConfirmation(`Xác nhận cập nhật tồn kho mã ${code} là ${amount} mét vào ngày ${date}?`);
+        pendingCommand = { date: formattedDate, type: 't', displayType: 'tồn', code, amount, stock: amount };
+        showConfirmation(`Xác nhận cập nhật tồn kho mã ${code} là ${amount} mét vào ngày ${formattedDate}?`);
       }
       // Lệnh nhập: "n a01 50", "n a01 50m", ...
-      else if (match = command.match(/n (\w+) (\d+)(?: mét|m)?/)) {
+      else if (match = command.match(/n\s+(\w+)\s+(\d+)(?:\s*mét|\s*m)?/i)) {
         const code = match[1].toUpperCase();
         const amount = parseInt(match[2]);
         const newStock = (inventory[code] || 0) + amount;
-        pendingCommand = { date, type: 'n', displayType: 'nhập', code, amount, stock: newStock };
-        showConfirmation(`Xác nhận nhập mã ${code} ${amount} mét vào ngày ${date}? Tồn kho sẽ là ${newStock} mét.`);
+        pendingCommand = { date: formattedDate, type: 'n', displayType: 'nhập', code, amount, stock: newStock };
+        showConfirmation(`Xác nhận nhập mã ${code} ${amount} mét vào ngày ${formattedDate}? Tồn kho sẽ là ${newStock} mét.`);
       }
       // Lệnh xuất: "x a01 30", "x a01 30m", ...
-      else if (match = command.match(/x (\w+) (\d+)(?: mét|m)?/)) {
+      else if (match = command.match(/x\s+(\w+)\s+(\d+)(?:\s*mét|\s*m)?/i)) {
         const code = match[1].toUpperCase();
         const amount = parseInt(match[2]);
-        if (inventory[code] >= amount) {
-          const newStock = inventory[code] - amount;
-          pendingCommand = { date, type: 'x', displayType: 'xuất', code, amount, stock: newStock };
-          showConfirmation(`Xác nhận xuất mã ${code} ${amount} mét vào ngày ${date}? Tồn kho sẽ là ${newStock} mét.`);
+        if ((inventory[code] || 0) >= amount) {
+          const newStock = (inventory[code] || 0) - amount;
+          pendingCommand = { date: formattedDate, type: 'x', displayType: 'xuất', code, amount, stock: newStock };
+          showConfirmation(`Xác nhận xuất mã ${code} ${amount} mét vào ngày ${formattedDate}? Tồn kho sẽ là ${newStock} mét.`);
         } else {
           document.getElementById('output').textContent = `Lỗi: Không đủ tồn kho mã ${code}. Tồn kho hiện tại: ${inventory[code] || 0} mét.`;
         }
@@ -372,9 +374,45 @@
       document.getElementById('editType').value = t.type;
       document.getElementById('editCode').value = t.code;
       document.getElementById('editAmount').value = t.amount;
-      document.getElementById('editDate').value = t.date.split('/').reverse().join('-'); // Chuyển định dạng ngày
+      // Chuyển định dạng ngày DD/MM/YYYY sang YYYY-MM-DD
+      const [day, month, year] = t.date.split('/');
+      document.getElementById('editDate').value = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
       const modal = new bootstrap.Modal(document.getElementById('editModal'));
       modal.show();
     }
 
-    // Lưu
+    // Lưu giao dịch đã chỉnh sửa
+    document.getElementById('saveEditButton').onclick = function() {
+      const type = document.getElementById('editType').value;
+      const code = document.getElementById('editCode').value.trim().toUpperCase();
+      const amount = parseInt(document.getElementById('editAmount').value);
+      const date = document.getElementById('editDate').value;
+
+      if (!code || isNaN(amount) || amount <= 0) {
+        document.getElementById('output').textContent = 'Vui lòng nhập đầy đủ mã vải và số mét hợp lệ!';
+        return;
+      }
+
+      const formattedDate = new Date(date).toLocaleDateString('vi-VN');
+      const displayType = type === 't' ? 'tồn' : type === 'n' ? 'nhập' : 'xuất';
+      let stock = amount;
+      if (type === 'n') {
+        stock = (inventory[code] || 0) + amount - (transactions[editingIndex].type === 'n' ? transactions[editingIndex].amount : 0);
+      } else if (type === 'x') {
+        stock = (inventory[code] || 0) - amount + (transactions[editingIndex].type === 'x' ? transactions[editingIndex].amount : 0);
+      }
+
+      transactions[editingIndex] = { date: formattedDate, type, displayType, code, amount, stock };
+      recalculateInventory();
+      saveData();
+      updateUI();
+      bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+      document.getElementById('output').textContent = 'Đã chỉnh sửa giao dịch!';
+      editingIndex = null;
+    };
+
+    // Tải dữ liệu khi khởi động
+    loadData();
+  </script>
+</body>
+</html>
