@@ -11,6 +11,7 @@
     #output { margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px; }
     .table { margin-top: 20px; }
     .btn { margin-right: 10px; }
+    #confirmationModal .modal-body { font-size: 1.1em; }
   </style>
 </head>
 <body>
@@ -48,10 +49,29 @@
     </table>
   </div>
 
+  <!-- Modal xác nhận -->
+  <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmationModalLabel">Xác nhận lệnh</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="confirmationMessage"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="button" class="btn btn-primary" id="confirmButton">Xác nhận</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // Dữ liệu kho
     let inventory = {};
     let transactions = [];
+    let pendingCommand = null;
 
     // Hàm lưu dữ liệu vào localStorage
     function saveData() {
@@ -68,7 +88,6 @@
 
     // Cập nhật giao diện
     function updateUI() {
-      // Cập nhật bảng tồn kho
       const inventoryBody = document.getElementById('inventory');
       inventoryBody.innerHTML = '';
       for (const [code, amount] of Object.entries(inventory)) {
@@ -76,7 +95,6 @@
         inventoryBody.innerHTML += row;
       }
 
-      // Cập nhật bảng lịch sử giao dịch
       const transactionsBody = document.getElementById('transactions');
       transactionsBody.innerHTML = '';
       transactions.forEach(t => {
@@ -99,11 +117,13 @@
 
     recognition.onerror = function(event) {
       document.getElementById('output').textContent = 'Lỗi: ' + event.error;
+      speak('Có lỗi khi nhận diện giọng nói. Vui lòng thử lại.');
     };
 
     function startRecognition() {
       recognition.start();
       document.getElementById('output').textContent = 'Đang lắng nghe...';
+      speak('Đang lắng nghe lệnh của bạn.');
     }
 
     function stopRecognition() {
@@ -116,42 +136,67 @@
       const date = new Date().toLocaleDateString('vi-VN');
       let match;
 
-      // Lệnh "tồn mã A01 100m" hoặc "hôm nay ngày 25/4 tồn mã A01 100m"
-      if (match = command.match(/(?:hôm nay.*)?tồn mã (\w+) (\d+)m/)) {
+      // Lệnh tồn kho: "tồn kho mã A01 100 mét", "hôm nay tồn mã A01 100m", ...
+      if (match = command.match(/(?:hôm nay.*)?tồn(?: kho)? mã (\w+) (\d+)(?: mét|m)?/)) {
         const code = match[1].toUpperCase();
         const amount = parseInt(match[2]);
-        inventory[code] = amount;
-        transactions.push({ date, type: 'tồn', code, amount, stock: amount });
-        saveData();
-        updateUI();
-        speak(`Đã cập nhật tồn kho mã ${code} là ${amount} mét.`);
+        pendingCommand = { date, type: 'tồn', code, amount, stock: amount };
+        showConfirmation(`Xác nhận cập nhật tồn kho mã ${code} là ${amount} mét?`);
       }
-      // Lệnh "nhập mã A01 50m"
-      else if (match = command.match(/nhập mã (\w+) (\d+)m/)) {
+      // Lệnh nhập: "nhập mã A01 50 mét", "nhập thêm mã A01 50m", ...
+      else if (match = command.match(/(?:nhập(?: thêm)?) mã (\w+) (\d+)(?: mét|m)?/)) {
         const code = match[1].toUpperCase();
         const amount = parseInt(match[2]);
-        inventory[code] = (inventory[code] || 0) + amount;
-        transactions.push({ date, type: 'nhập', code, amount, stock: inventory[code] });
-        saveData();
-        updateUI();
-        speak(`Đã nhập mã ${code} ${amount} mét. Tồn kho hiện tại: ${inventory[code]} mét.`);
+        const newStock = (inventory[code] || 0) + amount;
+        pendingCommand = { date, type: 'nhập', code, amount, stock: newStock };
+        showConfirmation(`Xác nhận nhập mã ${code} ${amount} mét? Tồn kho sẽ là ${newStock} mét.`);
       }
-      // Lệnh "xuất mã A01 30m"
-      else if (match = command.match(/xuất mã (\w+) (\d+)m/)) {
+      // Lệnh xuất: "xuất mã A01 30 mét", "xuất kho mã A01 30m", ...
+      else if (match = command.match(/(?:xuất(?: kho)?) mã (\w+) (\d+)(?: mét|m)?/)) {
         const code = match[1].toUpperCase();
         const amount = parseInt(match[2]);
         if (inventory[code] >= amount) {
-          inventory[code] -= amount;
-          transactions.push({ date, type: 'xuất', code, amount, stock: inventory[code] });
-          saveData();
-          updateUI();
-          speak(`Đã xuất mã ${code} ${amount} mét. Tồn kho hiện tại: ${inventory[code]} mét.`);
+          const newStock = inventory[code] - amount;
+          pendingCommand = { date, type: 'xuất', code, amount, stock: newStock };
+          showConfirmation(`Xác nhận xuất mã ${code} ${amount} mét? Tồn kho sẽ là ${newStock} mét.`);
         } else {
           speak(`Không đủ tồn kho mã ${code}. Tồn kho hiện tại: ${inventory[code] || 0} mét.`);
+          document.getElementById('output').textContent = `Lỗi: Không đủ tồn kho mã ${code}.`;
         }
       } else {
         speak('Lệnh không hợp lệ. Vui lòng thử lại.');
+        document.getElementById('output').textContent = 'Lệnh không hợp lệ: ' + command;
       }
+    }
+
+    // Hiển thị popup xác nhận
+    function showConfirmation(message) {
+      document.getElementById('confirmationMessage').textContent = message;
+      const modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+      modal.show();
+
+      // Xử lý nút xác nhận
+      document.getElementById('confirmButton').onclick = function() {
+        if (pendingCommand) {
+          if (pendingCommand.type === 'tồn') {
+            inventory[pendingCommand.code] = pendingCommand.amount;
+            transactions.push(pendingCommand);
+            speak(`Đã cập nhật tồn kho mã ${pendingCommand.code} là ${pendingCommand.amount} mét.`);
+          } else if (pendingCommand.type === 'nhập') {
+            inventory[pendingCommand.code] = pendingCommand.stock;
+            transactions.push(pendingCommand);
+            speak(`Đã nhập mã ${pendingCommand.code} ${pendingCommand.amount} mét. Tồn kho hiện tại: ${pendingCommand.stock} mét.`);
+          } else if (pendingCommand.type === 'xuất') {
+            inventory[pendingCommand.code] = pendingCommand.stock;
+            transactions.push(pendingCommand);
+            speak(`Đã xuất mã ${pendingCommand.code} ${pendingCommand.amount} mét. Tồn kho hiện tại: ${pendingCommand.stock} mét.`);
+          }
+          saveData();
+          updateUI();
+          modal.hide();
+          pendingCommand = null;
+        }
+      };
     }
 
     // Hàm phát giọng nói
