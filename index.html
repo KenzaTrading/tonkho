@@ -19,7 +19,7 @@
   <div class="container">
     <h1 class="text-center mb-4">Quản lý kho vải</h1>
     <div class="mb-3">
-      <label for="commandInput" class="form-label">Nhập lệnh (VD: Tồn mã A01 100m, Nhập mã A01 50m):</label>
+      <label for="commandInput" class="form-label">Nhập lệnh (VD: t mã A01 100m, n mã A01 50m, x mã A01 30m):</label>
       <div class="input-group">
         <input type="text" class="form-control" id="commandInput" placeholder="Nhập lệnh tại đây">
         <button class="btn btn-primary" onclick="processTextCommand()">Thực hiện</button>
@@ -102,7 +102,7 @@
       const transactionsBody = document.getElementById('transactions');
       transactionsBody.innerHTML = '';
       transactions.forEach(t => {
-        const row = `<tr><td>${t.date}</td><td>${t.type}</td><td>${t.code}</td><td>${t.amount} m</td><td>${t.stock} m</td></tr>`;
+        const row = `<tr><td>${t.date}</td><td>${t.displayType}</td><td>${t.code}</td><td>${t.amount} m</td><td>${t.stock} m</td></tr>`;
         transactionsBody.innerHTML += row;
       });
     }
@@ -127,35 +127,33 @@
       const date = new Date().toLocaleDateString('vi-VN');
       let match;
 
-      // Lệnh tồn kho: "tồn mã A01 100m", "tồn kho mã A01 100 mét", ...
-      if (match = command.match(/(?:hôm nay.*)?tồn(?: kho)? mã (\w+) (\d+)(?: mét|m)?/)) {
+      // Lệnh tồn kho: "t mã A01 100m", "t mã A01 100 mét", ...
+      if (match = command.match(/(?:hôm nay.*)?t mã (\w+) (\d+)(?: mét|m)?/)) {
         const code = match[1].toUpperCase();
         const amount = parseInt(match[2]);
-        pendingCommand = { date, type: 'tồn', code, amount, stock: amount };
+        pendingCommand = { date, type: 't', displayType: 'tồn', code, amount, stock: amount };
         showConfirmation(`Xác nhận cập nhật tồn kho mã ${code} là ${amount} mét?`);
       }
-      // Lệnh nhập: "nhập mã A01 50m", "nhập thêm mã A01 50 mét", ...
-      else if (match = command.match(/(?:nhập(?: thêm)?) mã (\w+) (\d+)(?: mét|m)?/)) {
+      // Lệnh nhập: "n mã A01 50m", "n mã A01 50 mét", ...
+      else if (match = command.match(/n mã (\w+) (\d+)(?: mét|m)?/)) {
         const code = match[1].toUpperCase();
         const amount = parseInt(match[2]);
         const newStock = (inventory[code] || 0) + amount;
-        pendingCommand = { date, type: 'nhập', code, amount, stock: newStock };
+        pendingCommand = { date, type: 'n', displayType: 'nhập', code, amount, stock: newStock };
         showConfirmation(`Xác nhận nhập mã ${code} ${amount} mét? Tồn kho sẽ là ${newStock} mét.`);
       }
-      // Lệnh xuất: "xuất mã A01 30m", "xuất kho mã A01 30 mét", ...
-      else if (match = command.match(/(?:xuất(?: kho)?) mã (\w+) (\d+)(?: mét|m)?/)) {
+      // Lệnh xuất: "x mã A01 30m", "x mã A01 30 mét", ...
+      else if (match = command.match(/x mã (\w+) (\d+)(?: mét|m)?/)) {
         const code = match[1].toUpperCase();
         const amount = parseInt(match[2]);
         if (inventory[code] >= amount) {
           const newStock = inventory[code] - amount;
-          pendingCommand = { date, type: 'xuất', code, amount, stock: newStock };
+          pendingCommand = { date, type: 'x', displayType: 'xuất', code, amount, stock: newStock };
           showConfirmation(`Xác nhận xuất mã ${code} ${amount} mét? Tồn kho sẽ là ${newStock} mét.`);
         } else {
-          speak(`Không đủ tồn kho mã ${code}. Tồn kho hiện tại: ${inventory[code] || 0} mét.`);
-          document.getElementById('output').textContent = `Lỗi: Không đủ tồn kho mã ${code}.`;
+          document.getElementById('output').textContent = `Lỗi: Không đủ tồn kho mã ${code}. Tồn kho hiện tại: ${inventory[code] || 0} mét.`;
         }
       } else {
-        speak('Lệnh không hợp lệ. Vui lòng nhập lại.');
         document.getElementById('output').textContent = 'Lệnh không hợp lệ: ' + command;
       }
     }
@@ -169,32 +167,23 @@
       // Xử lý nút xác nhận
       document.getElementById('confirmButton').onclick = function() {
         if (pendingCommand) {
-          if (pendingCommand.type === 'tồn') {
+          if (pendingCommand.type === 't') {
             inventory[pendingCommand.code] = pendingCommand.amount;
             transactions.push(pendingCommand);
-            speak(`Đã cập nhật tồn kho mã ${pendingCommand.code} là ${pendingCommand.amount} mét.`);
-          } else if (pendingCommand.type === 'nhập') {
+          } else if (pendingCommand.type === 'n') {
             inventory[pendingCommand.code] = pendingCommand.stock;
             transactions.push(pendingCommand);
-            speak(`Đã nhập mã ${pendingCommand.code} ${pendingCommand.amount} mét. Tồn kho hiện tại: ${pendingCommand.stock} mét.`);
-          } else if (pendingCommand.type === 'xuất') {
+          } else if (pendingCommand.type === 'x') {
             inventory[pendingCommand.code] = pendingCommand.stock;
             transactions.push(pendingCommand);
-            speak(`Đã xuất mã ${pendingCommand.code} ${pendingCommand.amount} mét. Tồn kho hiện tại: ${pendingCommand.stock} mét.`);
           }
           saveData();
           updateUI();
           modal.hide();
           pendingCommand = null;
+          document.getElementById('output').textContent = 'Đã cập nhật thành công!';
         }
       };
-    }
-
-    // Hàm phát giọng nói
-    function speak(text) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'vi-VN';
-      window.speechSynthesis.speak(utterance);
     }
 
     // Tải dữ liệu khi khởi động
