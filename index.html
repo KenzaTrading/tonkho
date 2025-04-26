@@ -22,6 +22,7 @@
     .action-btn { padding: 5px 10px; font-size: 0.8em; }
     .pagination-section { margin-top: 15px; text-align: center; }
     .pagination-btn { margin: 0 5px; }
+    .manage-data-btns { display: flex; gap: 10px; align-items: center; }
     @media (max-width: 576px) {
       body { padding: 10px; }
       .nav-link { padding: 8px 15px; font-size: 0.9em; }
@@ -32,6 +33,7 @@
       .row.g-3 > div { margin-bottom: 10px; }
       .filter-section .col-12, .filter-section .col-md-2 { margin-bottom: 10px; }
       .pagination-btn { padding: 6px 12px; font-size: 0.8em; }
+      .manage-data-btns { flex-direction: column; align-items: stretch; }
     }
   </style>
 </head>
@@ -115,8 +117,9 @@
                   <option value="">Tất cả mã</option>
                 </select>
               </div>
-              <div class="col-md-6 col-12 d-flex align-items-end">
+              <div class="col-md-6 col-12 d-flex align-items-end gap-2">
                 <button class="btn btn-secondary" onclick="clearSearch()">Xóa bộ lọc</button>
+                <button class="btn btn-primary" onclick="exportInventory()">Xuất tồn kho</button>
               </div>
             </div>
           </div>
@@ -133,7 +136,7 @@
           </table>
         </div>
 
-        <!-- Tab 3: Lịch sử giao dịch -->
+        <!-- Tab 3 Lịch sử giao dịch -->
         <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
           <div class="filter-section">
             <h5>Lọc giao dịch</h5>
@@ -144,17 +147,16 @@
                   <option value="">Tất cả mã</option>
                 </select>
               </div>
-              <div class="col-md-3 col-12">
+              <div class="col-md-4 col-12">
                 <label for="filterStartDate" class="form-label">Từ ngày:</label>
                 <input type="date" class="form-control" id="filterStartDate">
               </div>
-              <div class="col-md-3 col-12">
+              <div class="col-md-4 col-12">
                 <label for="filterEndDate" class="form-label">Đến ngày:</label>
                 <input type="date" class="form-control" id="filterEndDate">
-              </div>
-              <div class="col-md-2 col-12 d-flex align-items-end gap-2">
-                <button class="btn btn-primary btn-sm" onclick="applyFilter()">Áp dụng</button>
-                <button class="btn btn-secondary btn-sm" onclick="clearFilter()">Xóa</button>
+                <div class="d-flex align-items-end mt-2">
+                  <button class="btn btn-primary btn-sm" onclick="applyFilter()">Thực hiện</button>
+                </div>
               </div>
             </div>
           </div>
@@ -162,11 +164,14 @@
             <h5>Quản lý dữ liệu</h5>
             <div class="row g-3">
               <div class="col-md-6 col-12">
-                <label for="importFile" class="form-label">Import dữ liệu (JSON):</label>
-                <input type="file" class="form-control" id="importFile" accept=".json">
+                <label for="importFile" class="form-label">Import dữ liệu (CSV):</label>
+                <input type="file" class="form-control" id="importFile" accept=".csv">
               </div>
-              <div class="col-md-3 col-12 d-flex align-items-end">
-                <button class="btn btn-primary" onclick="exportData()">Export dữ liệu</button>
+              <div class="col-md-6 col-12 d-flex align-items-end">
+                <div class="manage-data-btns">
+                  <button class="btn btn-primary" onclick="exportData()">Xuất dữ liệu</button>
+                  <button class="btn btn-danger" onclick="showClearAllConfirmation()">Xóa toàn bộ</button>
+                </div>
               </div>
             </div>
           </div>
@@ -208,6 +213,23 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
           <button type="button" class="btn btn-primary" id="confirmButton">Xác nhận</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal xác nhận xóa toàn bộ -->
+  <div class="modal fade" id="clearAllModal" tabindex="-1" aria-labelledby="clearAllModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="clearAllModalLabel">Xác nhận xóa toàn bộ</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">Bạn có chắc muốn xóa toàn bộ dữ liệu? Hành động này không thể hoàn tác.</div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="button" class="btn btn-danger" onclick="clearAllData()">Xóa</button>
         </div>
       </div>
     </div>
@@ -256,22 +278,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <script>
-    // Cấu hình Firebase (THAY BẰNG CONFIG CỦA BẠN)
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      databaseURL: "YOUR_DATABASE_URL",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-
     // Dữ liệu kho
     let inventory = {};
     let transactions = [];
@@ -285,55 +292,19 @@
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('formDate').value = today;
 
-    // Hàm lưu dữ liệu vào localStorage và Firebase
+    // Hàm lưu dữ liệu vào localStorage
     function saveData() {
       try {
         localStorage.setItem('inventory', JSON.stringify(inventory));
         localStorage.setItem('transactions', JSON.stringify(transactions));
-        database.ref('inventory').set(inventory, error => {
-          if (error) {
-            console.error('Lỗi lưu Firebase inventory:', error);
-            document.getElementById('output').textContent = 'Lỗi lưu dữ liệu lên Firebase!';
-          }
-        });
-        database.ref('transactions').set(transactions, error => {
-          if (error) {
-            console.error('Lỗi lưu Firebase transactions:', error);
-            document.getElementById('output').textContent = 'Lỗi lưu dữ liệu lên Firebase!';
-          }
-        });
       } catch (error) {
         console.error('Lỗi lưu localStorage:', error);
         document.getElementById('output').textContent = 'Lỗi lưu dữ liệu!';
       }
     }
 
-    // Hàm tải dữ liệu từ Firebase, fallback về localStorage
+    // Hàm tải dữ liệu từ localStorage
     function loadData() {
-      database.ref('inventory').once('value', snapshot => {
-        const fbInventory = snapshot.val();
-        database.ref('transactions').once('value', snapshot => {
-          const fbTransactions = snapshot.val();
-          try {
-            inventory = fbInventory || JSON.parse(localStorage.getItem('inventory') || '{}');
-            transactions = fbTransactions || JSON.parse(localStorage.getItem('transactions') || '[]');
-            updateUI();
-          } catch (error) {
-            console.error('Lỗi tải localStorage:', error);
-            document.getElementById('output').textContent = 'Lỗi tải dữ liệu!';
-          }
-        }, error => {
-          console.error('Lỗi tải Firebase transactions:', error);
-          loadLocalStorage();
-        });
-      }, error => {
-        console.error('Lỗi tải Firebase inventory:', error);
-        loadLocalStorage();
-      });
-    }
-
-    // Hàm tải dữ liệu từ localStorage nếu Firebase lỗi
-    function loadLocalStorage() {
       try {
         inventory = JSON.parse(localStorage.getItem('inventory') || '{}');
         transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
@@ -517,6 +488,23 @@
       };
     }
 
+    // Hiển thị popup xác nhận xóa toàn bộ
+    function showClearAllConfirmation() {
+      const modal = new bootstrap.Modal(document.getElementById('clearAllModal'));
+      modal.show();
+    }
+
+    // Xóa toàn bộ dữ liệu
+    function clearAllData() {
+      inventory = {};
+      transactions = [];
+      currentPage = 1;
+      saveData();
+      updateUI();
+      bootstrap.Modal.getInstance(document.getElementById('clearAllModal')).hide();
+      document.getElementById('output').textContent = 'Đã xóa toàn bộ dữ liệu!';
+    }
+
     // Xóa giao dịch
     function deleteTransaction(index) {
       if (confirm('Bạn có chắc muốn xóa giao dịch này?')) {
@@ -608,16 +596,6 @@
       updateUI();
     }
 
-    // Xóa bộ lọc lịch sử
-    function clearFilter() {
-      currentFilter = { code: '', startDate: '', endDate: '' };
-      document.getElementById('filterCode').value = '';
-      document.getElementById('filterStartDate').value = '';
-      document.getElementById('filterEndDate').value = '';
-      currentPage = 1;
-      updateUI();
-    }
-
     // Chuyển trang trước
     function prevPage() {
       if (currentPage > 1) {
@@ -646,39 +624,113 @@
       }
     }
 
-    // Export dữ liệu
+    // Xuất dữ liệu lịch sử giao dịch (CSV)
     function exportData() {
-      const data = { inventory, transactions };
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const headers = ['Ngày', 'Loại', 'Mã vải', 'Số cây', 'Số mét', 'Tồn kho (cây)', 'Tồn kho (mét)'];
+      const rows = transactions.map(t => [
+        t.date,
+        t.displayType,
+        t.code,
+        t.trees,
+        t.meters.toFixed(1),
+        t.stockTrees,
+        t.stockMeters.toFixed(1)
+      ]);
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+      ].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       const date = new Date().toISOString().split('T')[0].replace(/-/g, '');
       a.href = url;
-      a.download = `tonkho_backup_${date}.json`;
+      a.download = `tonkho_lichsu_${date}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-      document.getElementById('output').textContent = 'Đã export dữ liệu!';
+      document.getElementById('output').textContent = 'Đã xuất dữ liệu!';
     }
 
-    // Import dữ liệu
+    // Xuất dữ liệu tồn kho (CSV)
+    function exportInventory() {
+      const headers = ['Ngày', 'Loại', 'Mã vải', 'Số cây', 'Số mét', 'Tồn kho (cây)', 'Tồn kho (mét)'];
+      const rows = [];
+      Object.keys(inventory).sort().forEach(code => {
+        const data = inventory[code];
+        // Lấy giao dịch cuối cùng của mã vải
+        const lastTransaction = [...transactions]
+          .reverse()
+          .find(t => t.code === code) || {
+            date: new Date().toLocaleDateString('vi-VN'),
+            displayType: 'tồn',
+            type: 't'
+          };
+        rows.push([
+          lastTransaction.date,
+          lastTransaction.displayType,
+          code,
+          data.trees,
+          data.meters.toFixed(1),
+          data.trees,
+          data.meters.toFixed(1)
+        ]);
+      });
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+      ].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const date = new Date().toISOString().split('T')[0].replace(/-/g, '');
+      a.href = url;
+      a.download = `tonkho_${date}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      document.getElementById('output').textContent = 'Đã xuất tồn kho!';
+    }
+
+    // Import dữ liệu (CSV)
     document.getElementById('importFile').addEventListener('change', function(event) {
       const file = event.target.files[0];
       if (!file) return;
-      if (!file.name.endsWith('.json')) {
-        document.getElementById('output').textContent = 'Vui lòng chọn file JSON!';
+      if (!file.name.endsWith('.csv')) {
+        document.getElementById('output').textContent = 'Vui lòng chọn file CSV!';
         return;
       }
       const reader = new FileReader();
       reader.onload = function(e) {
         try {
-          const data = JSON.parse(e.target.result);
-          if (!data.inventory || !data.transactions) {
-            document.getElementById('output').textContent = 'File JSON không hợp lệ!';
+          const text = e.target.result;
+          const lines = text.split('\n').map(line => line.split(','));
+          if (lines.length < 1 || lines[0].length < 7 || lines[0][0] !== 'Ngày') {
+            document.getElementById('output').textContent = 'File CSV không hợp lệ!';
+            return;
+          }
+          const newTransactions = [];
+          for (let i = 1; i < lines.length; i++) {
+            const [date, displayType, code, trees, meters, stockTrees, stockMeters] = lines[i];
+            if (date && displayType && code && trees && meters && stockTrees && stockMeters) {
+              const type = displayType === 'tồn' ? 't' : displayType === 'nhập' ? 'n' : 'x';
+              newTransactions.push({
+                date,
+                type,
+                displayType,
+                code,
+                trees: parseInt(trees),
+                meters: parseFloat(meters),
+                stockTrees: parseInt(stockTrees),
+                stockMeters: parseFloat(stockMeters)
+              });
+            }
+          }
+          if (newTransactions.length === 0) {
+            document.getElementById('output').textContent = 'File CSV không chứa dữ liệu hợp lệ!';
             return;
           }
           if (confirm('Import sẽ ghi đè dữ liệu hiện tại. Bạn có chắc muốn tiếp tục?')) {
-            inventory = data.inventory;
-            transactions = data.transactions;
+            transactions = newTransactions;
+            recalculateInventory();
             currentPage = 1;
             saveData();
             updateUI();
@@ -686,7 +738,7 @@
             event.target.value = '';
           }
         } catch (error) {
-          document.getElementById('output').textContent = 'Lỗi đọc file JSON!';
+          document.getElementById('output').textContent = 'Lỗi đọc file CSV!';
           console.error('Lỗi import:', error);
         }
       };
