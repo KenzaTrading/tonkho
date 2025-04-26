@@ -20,6 +20,7 @@
     .form-control, .form-select { font-size: 0.9em; border-radius: 5px; }
     .form-section { margin-bottom: 20px; }
     .action-btn { padding: 5px 10px; font-size: 0.8em; }
+    .filter-section { margin-bottom: 15px; }
     @media (max-width: 576px) {
       body { padding: 10px; }
       .nav-link { padding: 8px 15px; font-size: 0.9em; }
@@ -28,6 +29,7 @@
       .form-section h5 { font-size: 1em; }
       .table { font-size: 0.8em; }
       .row.g-3 > div { margin-bottom: 10px; }
+      .filter-section .col-12 { margin-bottom: 10px; }
     }
   </style>
 </head>
@@ -39,7 +41,10 @@
       <!-- Nav tabs -->
       <ul class="nav nav-tabs" id="myTab" role="tablist">
         <li class="nav-item" role="presentation">
-          <button class="nav-link active" id="input-tab" data-bs-toggle="tab" data-bs-target="#input" type="button" role="tab" aria-controls="input" aria-selected="true">Nhập liệu & Tồn kho</button>
+          <button class="nav-link active" id="input-tab" data-bs-toggle="tab" data-bs-target="#input" type="button" role="tab" aria-controls="input" aria-selected="true">Nhập liệu</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="inventory-tab" data-bs-toggle="tab" data-bs-target="#inventory-tab-content" type="button" role="tab" aria-controls="inventory-tab-content" aria-selected="false">Tồn kho</button>
         </li>
         <li class="nav-item" role="presentation">
           <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="false">Lịch sử giao dịch</button>
@@ -48,7 +53,7 @@
 
       <!-- Tab content -->
       <div class="tab-content" id="myTabContent">
-        <!-- Tab 1: Nhập liệu & Tồn kho -->
+        <!-- Tab 1: Nhập liệu -->
         <div class="tab-pane fade show active" id="input" role="tabpanel" aria-labelledby="input-tab">
           <!-- Form nhập liệu -->
           <div class="form-section">
@@ -84,7 +89,36 @@
 
           <div id="output" class="text-center">Kết quả sẽ hiển thị ở đây...</div>
 
-          <h2 class="mt-4" style="font-size: 1.2em;">Tồn kho hiện tại</h2>
+          <h2 class="mt-4" style="font-size: 1.2em;">Cập nhật 5 mã gần đây nhất</h2>
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Mã vải</th>
+                <th>Số cây</th>
+                <th>Số mét</th>
+              </tr>
+            </thead>
+            <tbody id="recent-inventory"></tbody>
+          </table>
+        </div>
+
+        <!-- Tab 2: Tồn kho -->
+        <div class="tab-pane fade" id="inventory-tab-content" role="tabpanel" aria-labelledby="inventory-tab">
+          <div class="form-section">
+            <h5>Tìm kiếm tồn kho</h5>
+            <div class="row g-3">
+              <div class="col-md-6 col-12">
+                <label for="searchCode" class="form-label">Chọn mã vải:</label>
+                <select class="form-select" id="searchCode">
+                  <option value="">Tất cả mã</option>
+                </select>
+              </div>
+              <div class="col-md-6 col-12 d-flex align-items-end">
+                <button class="btn btn-secondary" onclick="clearSearch()">Xóa bộ lọc</button>
+              </div>
+            </div>
+          </div>
+          <h2 class="mt-2" style="font-size: 1.2em;">Tồn kho</h2>
           <table class="table table-bordered">
             <thead>
               <tr>
@@ -97,8 +131,43 @@
           </table>
         </div>
 
-        <!-- Tab 2: Lịch sử giao dịch -->
+        <!-- Tab 3: Lịch sử giao dịch -->
         <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+          <div class="filter-section">
+            <h5>Lọc giao dịch</h5>
+            <div class="row g-3">
+              <div class="col-md-4 col-12">
+                <label for="filterCode" class="form-label">Chọn mã vải:</label>
+                <select class="form-select" id="filterCode">
+                  <option value="">Tất cả mã</option>
+                </select>
+              </div>
+              <div class="col-md-3 col-12">
+                <label for="filterStartDate" class="form-label">Từ ngày:</label>
+                <input type="date" class="form-control" id="filterStartDate">
+              </div>
+              <div class="col-md-3 col-12">
+                <label for="filterEndDate" class="form-label">Đến ngày:</label>
+                <input type="date" class="form-control" id="filterEndDate">
+              </div>
+              <div class="col-md-2 col-12 d-flex align-items-end">
+                <button class="btn btn-primary me-2" onclick="applyFilter()">Áp dụng</button>
+                <button class="btn btn-secondary" onclick="clearFilter()">Xóa bộ lọc</button>
+              </div>
+            </div>
+          </div>
+          <div class="form-section">
+            <h5>Import/Export dữ liệu</h5>
+            <div class="row g-3">
+              <div class="col-md-6 col-12">
+                <label for="importFile" class="form-label">Import dữ liệu:</label>
+                <input type="file" class="form-control" id="importFile" accept=".json">
+              </div>
+              <div class="col-md-6 col-12 d-flex align-items-end">
+                <button class="btn btn-primary me-2" onclick="exportData()">Export dữ liệu</button>
+              </div>
+            </div>
+          </div>
           <h2 class="mt-2" style="font-size: 1.2em;">Lịch sử giao dịch</h2>
           <table class="table table-bordered">
             <thead>
@@ -186,6 +255,7 @@
     let transactions = [];
     let pendingCommand = null;
     let editingIndex = null;
+    let currentFilter = { code: '', startDate: '', endDate: '' };
 
     // Thiết lập ngày mặc định là hôm nay
     const today = new Date().toISOString().split('T')[0];
@@ -236,16 +306,58 @@
 
     // Cập nhật giao diện
     function updateUI() {
+      // Cập nhật 5 mã gần đây nhất
+      const recentInventoryBody = document.getElementById('recent-inventory');
+      recentInventoryBody.innerHTML = '';
+      const recentCodes = [...new Set(transactions.map(t => t.code))]
+        .slice(0, 5)
+        .filter(code => inventory[code]);
+      recentCodes.forEach(code => {
+        const data = inventory[code];
+        const row = `<tr><td>${code}</td><td>${data.trees}</td><td>${data.meters.toFixed(1)} m</td></tr>`;
+        recentInventoryBody.innerHTML += row;
+      });
+
+      // Cập nhật tồn kho
       const inventoryBody = document.getElementById('inventory');
       inventoryBody.innerHTML = '';
-      for (const [code, data] of Object.entries(inventory)) {
+      const searchCode = document.getElementById('searchCode').value;
+      let codes = Object.keys(inventory).sort();
+      if (searchCode) {
+        codes = codes.filter(code => code === searchCode);
+      }
+      codes.forEach(code => {
+        const data = inventory[code];
         const row = `<tr><td>${code}</td><td>${data.trees}</td><td>${data.meters.toFixed(1)} m</td></tr>`;
         inventoryBody.innerHTML += row;
-      }
+      });
 
+      // Cập nhật dropdown tìm kiếm
+      const searchSelect = document.getElementById('searchCode');
+      const filterSelect = document.getElementById('filterCode');
+      const existingCodes = [...new Set(transactions.map(t => t.code))].sort();
+      searchSelect.innerHTML = '<option value="">Tất cả mã</option>';
+      filterSelect.innerHTML = '<option value="">Tất cả mã</option>';
+      existingCodes.forEach(code => {
+        searchSelect.innerHTML += `<option value="${code}">${code}</option>`;
+        filterSelect.innerHTML += `<option value="${code}">${code}</option>`;
+      });
+
+      // Cập nhật lịch sử giao dịch
       const transactionsBody = document.getElementById('transactions');
       transactionsBody.innerHTML = '';
-      transactions.forEach((t, index) => {
+      const filteredTransactions = transactions.filter(t => {
+        if (!t || !t.date || !t.code) return false;
+        const date = new Date(t.date.split('/').reverse().join('-'));
+        const startDate = currentFilter.startDate ? new Date(currentFilter.startDate) : null;
+        const endDate = currentFilter.endDate ? new Date(currentFilter.endDate) : null;
+        return (
+          (!currentFilter.code || t.code === currentFilter.code) &&
+          (!startDate || date >= startDate) &&
+          (!endDate || date <= endDate)
+        );
+      });
+      filteredTransactions.forEach((t, index) => {
         if (t && t.date && t.displayType && t.code && t.trees !== undefined && t.meters !== undefined && t.stockTrees !== undefined && t.stockMeters !== undefined) {
           const row = `
             <tr>
@@ -404,6 +516,80 @@
       document.getElementById('output').textContent = 'Đã chỉnh sửa giao dịch!';
       editingIndex = null;
     };
+
+    // Xử lý tìm kiếm tồn kho
+    document.getElementById('searchCode').onchange = function() {
+      updateUI();
+    };
+
+    // Xóa bộ lọc tìm kiếm
+    function clearSearch() {
+      document.getElementById('searchCode').value = '';
+      updateUI();
+    }
+
+    // Áp dụng bộ lọc lịch sử
+    function applyFilter() {
+      currentFilter.code = document.getElementById('filterCode').value;
+      currentFilter.startDate = document.getElementById('filterStartDate').value;
+      currentFilter.endDate = document.getElementById('filterEndDate').value;
+      updateUI();
+    }
+
+    // Xóa bộ lọc lịch sử
+    function clearFilter() {
+      currentFilter = { code: '', startDate: '', endDate: '' };
+      document.getElementById('filterCode').value = '';
+      document.getElementById('filterStartDate').value = '';
+      document.getElementById('filterEndDate').value = '';
+      updateUI();
+    }
+
+    // Export dữ liệu
+    function exportData() {
+      const data = { inventory, transactions };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const date = new Date().toISOString().split('T')[0].replace(/-/g, '');
+      a.href = url;
+      a.download = `tonkho_backup_${date}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      document.getElementById('output').textContent = 'Đã export dữ liệu!';
+    }
+
+    // Import dữ liệu
+    document.getElementById('importFile').addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (!file.name.endsWith('.json')) {
+        document.getElementById('output').textContent = 'Vui lòng chọn file JSON!';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data.inventory || !data.transactions) {
+            document.getElementById('output').textContent = 'File JSON không hợp lệ!';
+            return;
+          }
+          if (confirm('Import sẽ ghi đè dữ liệu hiện tại. Bạn có chắc muốn tiếp tục?')) {
+            inventory = data.inventory;
+            transactions = data.transactions;
+            saveData();
+            updateUI();
+            document.getElementById('output').textContent = 'Đã import dữ liệu thành công!';
+            event.target.value = '';
+          }
+        } catch (error) {
+          document.getElementById('output').textContent = 'Lỗi đọc file JSON!';
+          console.error('Lỗi import:', error);
+        }
+      };
+      reader.readAsText(file);
+    });
 
     // Tải dữ liệu khi khởi động
     loadData();
