@@ -31,7 +31,7 @@
       .form-section h5, .filter-section h5 { font-size: 1em; }
       .table { font-size: 0.8em; }
       .row.g-3 > div { margin-bottom: 10px; }
-      .filter-section .col-12, .filter-section .col-md-2 { margin-bottom: 10px; }
+      .filter-section .col-12, .filter-section .col-md-4, .filter-section .col-md-6 { margin-bottom: 10px; }
       .pagination-btn { padding: 6px 12px; font-size: 0.8em; }
       .manage-data-btns { flex-direction: column; align-items: stretch; }
     }
@@ -73,11 +73,11 @@
               </div>
               <div class="col-md-3 col-12">
                 <label for="formCode" class="form-label">Mã vải:</label>
-                <input type="text" class="form-control" id="formCode" placeholder="VD: 950-001">
+                <input type="text" class="form-control" id="formCode" placeholder="VD: A01">
               </div>
               <div class="col-md-2 col-12">
                 <label for="formTrees" class="form-label">Số cây:</label>
-                <input type="number" min="0" step="1" class="form-control" id="formTrees" placeholder="VD: 1">
+                <input type="number" min="0" step="1" class="form-control" id="formTrees" placeholder="VD: 3">
               </div>
               <div class="col-md-2 col-12">
                 <label for="formMeters" class="form-label">Số mét:</label>
@@ -109,7 +109,17 @@
         <!-- Tab 2: Tồn kho -->
         <div class="tab-pane fade" id="inventory-tab-content" role="tabpanel" aria-labelledby="inventory-tab">
           <div class="form-section">
-            <h5>Tìm kiếm tồn kho</h5>
+            <h5>Quản lý dữ liệu</h5>
+            <div class="row g-3">
+              <div class="col-12 d-flex justify-content-end">
+                <div class="manage-data-btns">
+                  <button class="btn btn-primary" onclick="exportInventory()">Xuất tồn kho</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="filter-section">
+            <h5>Lọc tồn kho</h5>
             <div class="row g-3">
               <div class="col-md-6 col-12">
                 <label for="searchCode" class="form-label">Chọn mã vải:</label>
@@ -117,9 +127,8 @@
                   <option value="">Tất cả mã</option>
                 </select>
               </div>
-              <div class="col-md-6 col-12 d-flex align-items-end gap-2">
+              <div class="col-md-6 col-12 d-flex align-items-end">
                 <button class="btn btn-secondary" onclick="clearSearch()">Xóa bộ lọc</button>
-                <button class="btn btn-primary" onclick="exportInventory()">Xuất tồn kho</button>
               </div>
             </div>
           </div>
@@ -136,8 +145,23 @@
           </table>
         </div>
 
-        <!-- Tab 3 Lịch sử giao dịch -->
+        <!-- Tab 3: Lịch sử giao dịch -->
         <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+          <div class="form-section">
+            <h5>Quản lý dữ liệu</h5>
+            <div class="row g-3">
+              <div class="col-md-6 col-12">
+                <label for="importFile" class="form-label">Import dữ liệu (CSV):</label>
+                <input type="file" class="form-control" id="importFile" accept=".csv">
+              </div>
+              <div class="col-md-6 col-12 d-flex align-items-end">
+                <div class="manage-data-btns">
+                  <button class="btn btn-primary" onclick="exportData()">Xuất dữ liệu</button>
+                  <button class="btn btn-danger" onclick="showClearAllConfirmation()">Xóa toàn bộ</button>
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="filter-section">
             <h5>Lọc giao dịch</h5>
             <div class="row g-3">
@@ -156,21 +180,6 @@
                 <input type="date" class="form-control" id="filterEndDate">
                 <div class="d-flex align-items-end mt-2">
                   <button class="btn btn-primary btn-sm" onclick="applyFilter()">Thực hiện</button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="form-section">
-            <h5>Quản lý dữ liệu</h5>
-            <div class="row g-3">
-              <div class="col-md-6 col-12">
-                <label for="importFile" class="form-label">Import dữ liệu (CSV):</label>
-                <input type="file" class="form-control" id="importFile" accept=".csv">
-              </div>
-              <div class="col-md-6 col-12 d-flex align-items-end">
-                <div class="manage-data-btns">
-                  <button class="btn btn-primary" onclick="exportData()">Xuất dữ liệu</button>
-                  <button class="btn btn-danger" onclick="showClearAllConfirmation()">Xóa toàn bộ</button>
                 </div>
               </div>
             </div>
@@ -252,7 +261,7 @@
               <option value="x">Xuất</option>
             </select>
           </div>
-          <div class="mb-3">
+          <div class="mb-萄
             <label for="editCode" class="form-label">Mã vải:</label>
             <input type="text" class="form-control" id="editCode">
           </div>
@@ -379,7 +388,10 @@
       transactionsBody.innerHTML = '';
       const filteredTransactions = transactions.filter(t => {
         if (!t || !t.date || !t.code) return false;
-        const date = new Date(t.date.split('/').reverse().join('-'));
+        // Chuyển t.date (DD/MM/YYYY) sang YYYY-MM-DD
+        const [day, month, year] = t.date.split('/');
+        const date = new Date(`${year}-${month}-${day}`);
+        if (isNaN(date)) return false; // Loại bỏ ngày không hợp lệ
         const startDate = currentFilter.startDate ? new Date(currentFilter.startDate) : null;
         const endDate = currentFilter.endDate ? new Date(currentFilter.endDate) : null;
         return (
@@ -589,9 +601,11 @@
 
     // Áp dụng bộ lọc lịch sử
     function applyFilter() {
+      console.log('applyFilter called'); // Debug
       currentFilter.code = document.getElementById('filterCode').value;
       currentFilter.startDate = document.getElementById('filterStartDate').value;
       currentFilter.endDate = document.getElementById('filterEndDate').value;
+      console.log('Filter:', currentFilter); // Debug
       currentPage = 1;
       updateUI();
     }
@@ -608,7 +622,9 @@
     function nextPage() {
       const filteredTransactions = transactions.filter(t => {
         if (!t || !t.date || !t.code) return false;
-        const date = new Date(t.date.split('/').reverse().join('-'));
+        const [day, month, year] = t.date.split('/');
+        const date = new Date(`${year}-${month}-${day}`);
+        if (isNaN(date)) return false;
         const startDate = currentFilter.startDate ? new Date(currentFilter.startDate) : null;
         const endDate = currentFilter.endDate ? new Date(currentFilter.endDate) : null;
         return (
