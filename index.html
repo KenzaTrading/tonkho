@@ -127,9 +127,8 @@
                   <option value="">Tất cả màu</option>
                 </select>
               </div>
-              <div class="col-md-4 col-12 d-flex align-items-end gap-2">
+              <div class="col-md-4 col-12 d-flex align-items-end">
                 <button class="btn btn-primary" onclick="applyInventoryFilter()">Thực hiện</button>
-                <button class="btn btn-secondary" onclick="clearSearch()">Xóa bộ lọc</button>
               </div>
             </div>
           </div>
@@ -615,13 +614,6 @@
 
     // Áp dụng bộ lọc tồn kho
     function applyInventoryFilter() {
-      updateUI();
-    }
-
-    // Xóa bộ lọc tìm kiếm
-    function clearSearch() {
-      document.getElementById('searchFabricType').value = '';
-      document.getElementById('searchColor').value = '';
       updateUI();
     }
 
