@@ -73,7 +73,7 @@
               </div>
               <div class="col-md-3 col-12">
                 <label for="formCode" class="form-label">Mã vải:</label>
-                <input type="text" class="form-control" id="formCode" placeholder="VD: A01">
+                <input type="text" class="form-control" id="formCode" placeholder="VD: 950002">
               </div>
               <div class="col-md-2 col-12">
                 <label for="formTrees" class="form-label">Số cây:</label>
@@ -121,13 +121,19 @@
           <div class="filter-section">
             <h5>Lọc tồn kho</h5>
             <div class="row g-3">
-              <div class="col-md-6 col-12">
-                <label for="searchCode" class="form-label">Chọn mã vải:</label>
-                <select class="form-select" id="searchCode">
-                  <option value="">Tất cả mã</option>
+              <div class="col-md-4 col-12">
+                <label for="searchFabricType" class="form-label">Mã loại vải:</label>
+                <select class="form-select" id="searchFabricType">
+                  <option value="">Tất cả loại vải</option>
                 </select>
               </div>
-              <div class="col-md-6 col-12 d-flex align-items-end">
+              <div class="col-md-4 col-12">
+                <label for="searchColor" class="form-label">Mã màu:</label>
+                <select class="form-select" id="searchColor">
+                  <option value="">Tất cả màu</option>
+                </select>
+              </div>
+              <div class="col-md-4 col-12 d-flex align-items-end">
                 <button class="btn btn-secondary" onclick="clearSearch()">Xóa bộ lọc</button>
               </div>
             </div>
@@ -261,9 +267,9 @@
               <option value="x">Xuất</option>
             </select>
           </div>
-          <div class="mb-萄
+          <div class="mb-3">
             <label for="editCode" class="form-label">Mã vải:</label>
-            <input type="text" class="form-control" id="editCode">
+            <input type="text" class="form-control" id="editCode" placeholder="VD: 950002">
           </div>
           <div class="mb-3">
             <label for="editTrees" class="form-label">Số cây:</label>
@@ -361,10 +367,14 @@
       // Cập nhật tồn kho
       const inventoryBody = document.getElementById('inventory');
       inventoryBody.innerHTML = '';
-      const searchCode = document.getElementById('searchCode').value;
+      const fabricType = document.getElementById('searchFabricType').value;
+      const color = document.getElementById('searchColor').value;
       let codes = Object.keys(inventory).sort();
-      if (searchCode) {
-        codes = codes.filter(code => code === searchCode);
+      if (fabricType || color) {
+        codes = codes.filter(code => 
+          (!fabricType || code.startsWith(fabricType + '-')) &&
+          (!color || code.endsWith('-' + color))
+        );
       }
       codes.forEach(code => {
         const data = inventory[code];
@@ -373,13 +383,25 @@
       });
 
       // Cập nhật dropdown tìm kiếm
-      const searchSelect = document.getElementById('searchCode');
+      const fabricTypeSelect = document.getElementById('searchFabricType');
+      const colorSelect = document.getElementById('searchColor');
       const filterSelect = document.getElementById('filterCode');
+      const fabricTypes = [...new Set(transactions.map(t => t.code.split('-')[0]))].sort();
+      const colors = [...new Set(transactions.map(t => t.code.split('-')[1]))].sort();
       const existingCodes = [...new Set(transactions.map(t => t.code))].sort();
-      searchSelect.innerHTML = '<option value="">Tất cả mã</option>';
+      
+      fabricTypeSelect.innerHTML = '<option value="">Tất cả loại vải</option>';
+      fabricTypes.forEach(type => {
+        fabricTypeSelect.innerHTML += `<option value="${type}">${type}</option>`;
+      });
+      
+      colorSelect.innerHTML = '<option value="">Tất cả màu</option>';
+      colors.forEach(color => {
+        colorSelect.innerHTML += `<option value="${color}">${color}</option>`;
+      });
+      
       filterSelect.innerHTML = '<option value="">Tất cả mã</option>';
       existingCodes.forEach(code => {
-        searchSelect.innerHTML += `<option value="${code}">${code}</option>`;
         filterSelect.innerHTML += `<option value="${code}">${code}</option>`;
       });
 
@@ -388,10 +410,9 @@
       transactionsBody.innerHTML = '';
       const filteredTransactions = transactions.filter(t => {
         if (!t || !t.date || !t.code) return false;
-        // Chuyển t.date (DD/MM/YYYY) sang YYYY-MM-DD
         const [day, month, year] = t.date.split('/');
         const date = new Date(`${year}-${month}-${day}`);
-        if (isNaN(date)) return false; // Loại bỏ ngày không hợp lệ
+        if (isNaN(date)) return false;
         const startDate = currentFilter.startDate ? new Date(currentFilter.startDate) : null;
         const endDate = currentFilter.endDate ? new Date(currentFilter.endDate) : null;
         return (
@@ -440,8 +461,12 @@
       const meters = parseFloat(document.getElementById('formMeters').value);
       const date = document.getElementById('formDate').value || today;
       
-      if (!code || isNaN(trees) || trees < 0 || isNaN(meters) || meters <= 0) {
-        document.getElementById('output').textContent = 'Vui lòng nhập đầy đủ mã vải, số cây và số mét hợp lệ!';
+      if (!code || code.length !== 6) {
+        document.getElementById('output').textContent = 'Mã vải phải có đúng 6 ký tự!';
+        return;
+      }
+      if (isNaN(trees) || trees < 0 || isNaN(meters) || meters <= 0) {
+        document.getElementById('output').textContent = 'Vui lòng nhập số cây và số mét hợp lệ!';
         return;
       }
 
@@ -453,27 +478,28 @@
         return;
       }
 
+      const formattedCode = code.slice(0, 3) + '-' + code.slice(3);
       const formattedMeters = parseFloat(meters.toFixed(1));
       const formattedDate = new Date(date).toLocaleDateString('vi-VN');
       let stockTrees = trees;
       let stockMeters = formattedMeters;
 
       if (type === 'n') {
-        stockTrees = (inventory[code]?.trees || 0) + trees;
-        stockMeters = (inventory[code]?.meters || 0) + formattedMeters;
+        stockTrees = (inventory[formattedCode]?.trees || 0) + trees;
+        stockMeters = (inventory[formattedCode]?.meters || 0) + formattedMeters;
       } else if (type === 'x') {
-        if ((inventory[code]?.trees || 0) < trees || (inventory[code]?.meters || 0) < formattedMeters) {
-          document.getElementById('output').textContent = `Lỗi: Không đủ tồn kho mã ${code}. Tồn kho hiện tại: ${inventory[code]?.trees || 0} cây, ${(inventory[code]?.meters || 0).toFixed(1)} mét.`;
+        if ((inventory[formattedCode]?.trees || 0) < trees || (inventory[formattedCode]?.meters || 0) < formattedMeters) {
+          document.getElementById('output').textContent = `Lỗi: Không đủ tồn kho mã ${formattedCode}. Tồn kho hiện tại: ${inventory[formattedCode]?.trees || 0} cây, ${(inventory[formattedCode]?.meters || 0).toFixed(1)} mét.`;
           return;
         }
-        stockTrees = (inventory[code]?.trees || 0) - trees;
-        stockMeters = (inventory[code]?.meters || 0) - formattedMeters;
+        stockTrees = (inventory[formattedCode]?.trees || 0) - trees;
+        stockMeters = (inventory[formattedCode]?.meters || 0) - formattedMeters;
       }
 
       const displayType = type === 't' ? 'tồn' : type === 'n' ? 'nhập' : 'xuất';
-      pendingCommand = { date: formattedDate, type, displayType, code, trees, meters: formattedMeters, stockTrees, stockMeters };
+      pendingCommand = { date: formattedDate, type, displayType, code: formattedCode, trees, meters: formattedMeters, stockTrees, stockMeters };
       
-      showConfirmation(`Xác nhận ${displayType} mã ${code} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}? Tồn kho sẽ là ${stockTrees} cây, ${stockMeters.toFixed(1)} mét.`);
+      showConfirmation(`Xác nhận ${displayType} mã ${formattedCode} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}? Tồn kho sẽ là ${stockTrees} cây, ${stockMeters.toFixed(1)} mét.`);
       
       document.getElementById('formCode').value = '';
       document.getElementById('formTrees').value = '';
@@ -534,10 +560,9 @@
       const t = transactions[index];
       if (!t) return;
       document.getElementById('editType').value = t.type;
-      document.getElementById('editCode').value = t.code;
+      document.getElementById('editCode').value = t.code.replace('-', '');
       document.getElementById('editTrees').value = t.trees;
       document.getElementById('editMeters').value = t.meters.toFixed(1);
-      // Chuyển định dạng ngày DD/MM/YYYY sang YYYY-MM-DD
       const [day, month, year] = t.date.split('/');
       document.getElementById('editDate').value = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
       const modal = new bootstrap.Modal(document.getElementById('editModal'));
@@ -552,8 +577,12 @@
       const meters = parseFloat(document.getElementById('editMeters').value);
       const date = document.getElementById('editDate').value;
 
-      if (!code || isNaN(trees) || trees < 0 || isNaN(meters) || meters <= 0) {
-        document.getElementById('output').textContent = 'Vui lòng nhập đầy đủ mã vải, số cây và số mét hợp lệ!';
+      if (!code || code.length !== 6) {
+        document.getElementById('output').textContent = 'Mã vải phải có đúng 6 ký tự!';
+        return;
+      }
+      if (isNaN(trees) || trees < 0 || isNaN(meters) || meters <= 0) {
+        document.getElementById('output').textContent = 'Vui lòng nhập số cây và số mét hợp lệ!';
         return;
       }
 
@@ -565,6 +594,7 @@
         return;
       }
 
+      const formattedCode = code.slice(0, 3) + '-' + code.slice(3);
       const formattedMeters = parseFloat(meters.toFixed(1));
       const formattedDate = new Date(date).toLocaleDateString('vi-VN');
       const displayType = type === 't' ? 'tồn' : type === 'n' ? 'nhập' : 'xuất';
@@ -572,14 +602,14 @@
       let stockMeters = formattedMeters;
 
       if (type === 'n') {
-        stockTrees = (inventory[code]?.trees || 0) + trees - (transactions[editingIndex].type === 'n' ? transactions[editingIndex].trees : 0);
-        stockMeters = (inventory[code]?.meters || 0) + formattedMeters - (transactions[editingIndex].type === 'n' ? transactions[editingIndex].meters : 0);
+        stockTrees = (inventory[formattedCode]?.trees || 0) + trees - (transactions[editingIndex].type === 'n' ? transactions[editingIndex].trees : 0);
+        stockMeters = (inventory[formattedCode]?.meters || 0) + formattedMeters - (transactions[editingIndex].type === 'n' ? transactions[editingIndex].meters : 0);
       } else if (type === 'x') {
-        stockTrees = (inventory[code]?.trees || 0) - trees + (transactions[editingIndex].type === 'x' ? transactions[editingIndex].trees : 0);
-        stockMeters = (inventory[code]?.meters || 0) - formattedMeters + (transactions[editingIndex].type === 'x' ? transactions[editingIndex].meters : 0);
+        stockTrees = (inventory[formattedCode]?.trees || 0) - trees + (transactions[editingIndex].type === 'x' ? transactions[editingIndex].trees : 0);
+        stockMeters = (inventory[formattedCode]?.meters || 0) - formattedMeters + (transactions[editingIndex].type === 'x' ? transactions[editingIndex].meters : 0);
       }
 
-      transactions[editingIndex] = { date: formattedDate, type, displayType, code, trees, meters: formattedMeters, stockTrees, stockMeters };
+      transactions[editingIndex] = { date: formattedDate, type, displayType, code: formattedCode, trees, meters: formattedMeters, stockTrees, stockMeters };
       recalculateInventory();
       saveData();
       updateUI();
@@ -589,23 +619,27 @@
     };
 
     // Xử lý tìm kiếm tồn kho
-    document.getElementById('searchCode').onchange = function() {
+    document.getElementById('searchFabricType').onchange = function() {
+      updateUI();
+    };
+    document.getElementById('searchColor').onchange = function() {
       updateUI();
     };
 
     // Xóa bộ lọc tìm kiếm
     function clearSearch() {
-      document.getElementById('searchCode').value = '';
+      document.getElementById('searchFabricType').value = '';
+      document.getElementById('searchColor').value = '';
       updateUI();
     }
 
     // Áp dụng bộ lọc lịch sử
     function applyFilter() {
-      console.log('applyFilter called'); // Debug
+      console.log('applyFilter called');
       currentFilter.code = document.getElementById('filterCode').value;
       currentFilter.startDate = document.getElementById('filterStartDate').value;
       currentFilter.endDate = document.getElementById('filterEndDate').value;
-      console.log('Filter:', currentFilter); // Debug
+      console.log('Filter:', currentFilter);
       currentPage = 1;
       updateUI();
     }
@@ -673,7 +707,6 @@
       const rows = [];
       Object.keys(inventory).sort().forEach(code => {
         const data = inventory[code];
-        // Lấy giao dịch cuối cùng của mã vải
         const lastTransaction = [...transactions]
           .reverse()
           .find(t => t.code === code) || {
@@ -727,6 +760,11 @@
           for (let i = 1; i < lines.length; i++) {
             const [date, displayType, code, trees, meters, stockTrees, stockMeters] = lines[i];
             if (date && displayType && code && trees && meters && stockTrees && stockMeters) {
+              // Kiểm tra mã vải có định dạng XXX-YYY
+              if (!/^\w{3}-\w{3}$/.test(code)) {
+                document.getElementById('output').textContent = `Mã vải không hợp lệ: ${code}`;
+                return;
+              }
               const type = displayType === 'tồn' ? 't' : displayType === 'nhập' ? 'n' : 'x';
               newTransactions.push({
                 date,
