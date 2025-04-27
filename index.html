@@ -252,13 +252,23 @@
     const showOutput = (msg) => document.getElementById('output').textContent = msg;
 
     const parseDate = (dateStr) => {
-      if (!dateStr || !/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) return null;
-      const [day, month, year] = dateStr.split('/').map(Number);
-      const date = new Date(year, month - 1, day);
+      if (!dateStr) return null;
+      let date;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        date = new Date(dateStr);
+      } else if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+        const [day, month, year] = dateStr.split('/').map(Number);
+        date = new Date(year, month - 1, day);
+      } else {
+        return null;
+      }
       return isNaN(date) ? null : date;
     };
 
-    const formatDate = (date) => new Date(date).toLocaleDateString('vi-VN');
+    const formatDate = (dateStr) => {
+      const date = parseDate(dateStr);
+      return date ? date.toLocaleDateString('vi-VN') : '';
+    };
 
     const validateTransaction = (code, trees, meters) => {
       if (!/^\w{6}$/.test(code)) return 'Mã vải phải có đúng 6 ký tự!';
@@ -284,9 +294,13 @@
     const loadData = () => {
       try {
         inventory = JSON.parse(localStorage.getItem('inventory') || '{}');
-        transactions = JSON.parse(localStorage.getItem('transactions') || '[]').filter(t => t.date && t.code && parseDate(t.date));
-        activeInputs = JSON.parse(localStorage.getItem('activeInputs') || '[]').filter(t => t.id && t.code && t.date);
+        transactions = JSON.parse(localStorage.getItem('transactions') || '[]')
+          .filter(t => t.date && t.code && parseDate(t.date) && t.type && t.trees >= 0 && t.meters >= 0);
+        activeInputs = JSON.parse(localStorage.getItem('activeInputs') || '[]')
+          .filter(t => t.id && t.code && t.date && parseDate(t.date) && t.trees >= 0 && t.meters >= 0);
         inputIdCounter = parseInt(localStorage.getItem('inputIdCounter') || '1');
+        console.log('Loaded transactions:', transactions);
+        console.log('Loaded activeInputs:', activeInputs);
         recalculateInventory();
         updateUI();
       } catch (error) {
@@ -304,7 +318,11 @@
           inventory[code].meters += meters;
         }
       });
-      transactions.forEach(t => inventory[t.code] = inventory[t.code] || { trees: 0, meters: 0 });
+      transactions.forEach(t => {
+        if (t.code) {
+          inventory[t.code] = inventory[t.code] || { trees: 0, meters: 0 };
+        }
+      });
       console.log('Inventory recalculated:', inventory);
     };
 
@@ -323,11 +341,16 @@
 
     const updateRecentInventory = () => {
       const recentInventoryBody = document.getElementById('recent-inventory');
+      if (!recentInventoryBody) {
+        console.error('Element recent-inventory not found');
+        showOutput('Lỗi hiển thị 5 mã gần nhất!');
+        return;
+      }
       const sortedTransactions = transactions
-        .filter(t => t.date && parseDate(t.date))
+        .filter(t => t.date && t.code && parseDate(t.date))
         .sort((a, b) => parseDate(b.date) - parseDate(a.date));
       const recentCodes = [...new Set(sortedTransactions.map(t => t.code))].slice(0, 5);
-      console.log('Recent codes:', recentCodes, 'Transactions:', sortedTransactions);
+      console.log('Updating recent inventory:', { transactions: transactions.length, sortedTransactions: sortedTransactions.length, recentCodes });
       recentInventoryBody.innerHTML = recentCodes.length === 0
         ? '<tr><td colspan="3" class="text-center">Chưa có giao dịch</td></tr>'
         : recentCodes.map(code => {
@@ -375,18 +398,23 @@
 
     const updateHistoryTable = () => {
       const transactionsBody = document.getElementById('transactions');
+      if (!transactionsBody) {
+        console.error('Element transactions not found');
+        showOutput('Lỗi hiển thị lịch sử giao dịch!');
+        return;
+      }
       const filteredTransactions = transactions.filter(t => {
         const date = parseDate(t.date);
         if (!date || !t.code) return false;
-        const startDate = currentFilter.startDate ? new Date(currentFilter.startDate) : null;
-        const endDate = currentFilter.endDate ? new Date(currentFilter.endDate) : null;
+        const startDate = currentFilter.startDate ? parseDate(formatDate(currentFilter.startDate)) : null;
+        const endDate = currentFilter.endDate ? parseDate(formatDate(currentFilter.endDate)) : null;
         return (
           (!currentFilter.code || t.code === currentFilter.code) &&
           (!startDate || date >= startDate) &&
           (!endDate || date <= endDate)
         );
       });
-      console.log('Filtered transactions:', filteredTransactions);
+      console.log('Updating history table:', { transactions: transactions.length, filteredTransactions: filteredTransactions.length });
       const totalPages = Math.max(1, Math.ceil(filteredTransactions.length / itemsPerPage));
       currentPage = Math.min(currentPage, totalPages);
       const start = (currentPage - 1) * itemsPerPage;
@@ -427,7 +455,7 @@
     };
 
     const updateUI = () => {
-      console.log('Updating UI, transactions:', transactions.length);
+      console.log('Updating UI:', { transactions: transactions.length, inventory: Object.keys(inventory).length });
       updateRecentInventory();
       updateInventoryTable();
       updateHistoryTable();
@@ -441,7 +469,7 @@
         return false;
       }
       let remainingTrees = trees, remainingMeters = meters;
-      const matchingInputs = activeInputs.filter(t => t.code === code && t.trees > 0).sort((a, b) => parseDate(a.date) - parseDate(b.date));
+      const matchingInputs = activeInputs.filter(t => t.code === code && t.trees > 0).sort((a, b) => parseDate(b.date) - parseDate(a.date));
       const updatedInputs = [...activeInputs];
       let valid = false;
       for (let input of matchingInputs) {
@@ -479,6 +507,8 @@
       const formattedCode = code.slice(0, 3) + '-' + code.slice(3);
       const formattedMeters = parseFloat(meters.toFixed(1));
       const formattedDate = formatDate(date);
+      if (!formattedDate) return showOutput('Ngày không hợp lệ!');
+
       let stockTrees = (inventory[formattedCode]?.trees || 0);
       let stockMeters = (inventory[formattedCode]?.meters || 0);
 
@@ -583,6 +613,7 @@
       const formattedCode = code.slice(0, 3) + '-' + code.slice(3);
       const formattedMeters = parseFloat(meters.toFixed(1));
       const formattedDate = formatDate(date);
+      if (!formattedDate) return showOutput('Ngày không hợp lệ!');
 
       const oldTransaction = transactions[index];
       if (oldTransaction.type === 'n') {
@@ -657,8 +688,8 @@
       const filteredTransactions = transactions.filter(t => {
         const date = parseDate(t.date);
         if (!date || !t.code) return false;
-        const startDate = currentFilter.startDate ? new Date(currentFilter.startDate) : null;
-        const endDate = currentFilter.endDate ? new Date(currentFilter.endDate) : null;
+        const startDate = currentFilter.startDate ? parseDate(formatDate(currentFilter.startDate)) : null;
+        const endDate = currentFilter.endDate ? parseDate(formatDate(currentFilter.endDate)) : null;
         return (
           (!currentFilter.code || t.code === currentFilter.code) &&
           (!startDate || date >= startDate) &&
@@ -741,7 +772,7 @@
                 trees: parseInt(line[3]),
                 meters: parseFloat(line[4])
               }))
-              .sort((a, b) => parseDate(a.date) - parseDate(b.date));
+              .sort((a, b) => parseDate(b.date) - parseDate(a.date));
             for (let i = 0; i < sortedLines.length; i++) {
               const { date, typeStr, code, trees, meters } = sortedLines[i];
               const type = typeStr === 'nhập' ? 'n' : 'x';
@@ -829,17 +860,9 @@
     document.getElementById('prevPageButton').addEventListener('click', prevPage);
     document.getElementById('nextPageButton').addEventListener('click', nextPage);
     document.getElementById('exportInventoryButton').addEventListener('click', showExportInventoryConfirmation);
-    checkImportButton();
+    document.getElementById('importTransactionsButton').addEventListener('click', showImportConfirmation);
     document.getElementById('exportDataButton').addEventListener('click', showExportDataConfirmation);
     document.getElementById('clearAllButton').addEventListener('click', showClearAllConfirmation);
-
-    function checkImportButton() {
-      const importButton = document.getElementById('importTransactionsButton');
-      importButton.disabled = !document.getElementById('importTransactions').value;
-      importButton.addEventListener('click', showImportConfirmation);
-    }
-
-    document.getElementById('importTransactions').addEventListener('change', checkImportButton);
 
     loadData();
   </script>
