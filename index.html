@@ -331,6 +331,7 @@
 
     // Hàm tính toán lại inventory từ activeInputs
     function recalculateInventory() {
+      console.log('recalculateInventory called');
       inventory = {};
       activeInputs.forEach(t => {
         if (t && t.code && t.trees >= 0 && t.meters >= 0) {
@@ -708,13 +709,14 @@
 
     // Lưu giao dịch đã chỉnh sửa
     function saveEditTransaction() {
-      console.log('saveEditTransaction called');
+      console.log('saveEditTransaction called, editingIndex:', editingIndex);
       const type = document.getElementById('editType').value;
       const code = document.getElementById('editCode').value.trim().toUpperCase();
       let trees = parseInt(document.getElementById('editTrees').value);
       let meters = parseFloat(document.getElementById('editMeters').value);
       const date = document.getElementById('editDate').value;
 
+      // Kiểm tra dữ liệu đầu vào
       if (!code || code.length !== 6) {
         document.getElementById('output').textContent = 'Mã vải phải có đúng 6 ký tự!';
         return;
@@ -740,10 +742,22 @@
       const formattedDate = new Date(date).toLocaleDateString('vi-VN');
       const displayType = type === 'n' ? 'nhập' : 'xuất';
 
+      // Lấy giao dịch cũ
       const oldTransaction = transactions[editingIndex];
+      console.log('Old transaction:', oldTransaction);
+
+      // Bước 1: Hoàn tác giao dịch cũ
       if (oldTransaction.type === 'n') {
-        activeInputs = activeInputs.filter(t => !(t.code === oldTransaction.code && t.trees === oldTransaction.trees && t.meters === oldTransaction.meters && t.date === oldTransaction.date));
+        // Xóa bản ghi nhập cũ khỏi activeInputs
+        activeInputs = activeInputs.filter(t => !(
+          t.code === oldTransaction.code &&
+          t.trees === oldTransaction.trees &&
+          t.meters === oldTransaction.meters &&
+          t.date === oldTransaction.date
+        ));
+        console.log('After removing old input:', activeInputs);
       } else if (oldTransaction.type === 'x' && (oldTransaction.trees > 0 || oldTransaction.meters > 0)) {
+        // Khôi phục tồn kho cho giao dịch xuất cũ
         const matchingInputs = transactions.slice(0, editingIndex).reverse().filter(t => t.type === 'n' && t.code === oldTransaction.code);
         let treesToRestore = oldTransaction.trees;
         let metersToRestore = oldTransaction.meters;
@@ -768,13 +782,15 @@
             metersToRestore -= input.meters;
           }
         }
+        console.log('After restoring old output:', activeInputs);
       }
 
+      // Bước 2: Áp dụng giao dịch mới
       let stockTrees = (inventory[formattedCode]?.trees || 0);
       let stockMeters = (inventory[formattedCode]?.meters || 0);
+
       if (type === 'n') {
-        stockTrees += trees;
-        stockMeters += formattedMeters;
+        // Thêm bản ghi nhập mới
         if (trees > 0 || formattedMeters > 0) {
           activeInputs.push({
             id: inputIdCounter++,
@@ -784,14 +800,18 @@
             meters: formattedMeters
           });
         }
+        console.log('After adding new input:', activeInputs);
       } else if (type === 'x') {
         if (trees === 0 && formattedMeters === 0) {
           // Giao dịch xuất 0 cây, 0 mét
         } else {
+          // Kiểm tra tồn kho
+          recalculateInventory(); // Tính lại inventory để đảm bảo tồn kho chính xác
           if ((inventory[formattedCode]?.trees || 0) < trees || (inventory[formattedCode]?.meters || 0) < formattedMeters) {
-            document.getElementById('output').textContent = `Lỗi: Không đủ tồn kho mã ${formattedCode}.`;
+            document.getElementById('output').textContent = `Lỗi: Không đủ tồn kho mã ${formattedCode}. Tồn kho hiện tại: ${inventory[formattedCode]?.trees || 0} cây, ${(inventory[formattedCode]?.meters || 0).toFixed(1)} mét.`;
             return;
           }
+          // Trừ tồn kho cho giao dịch xuất mới
           let remainingTrees = trees;
           let remainingMeters = formattedMeters;
           const matchingInputs = activeInputs.filter(t => t.code === formattedCode && t.trees > 0).sort((a, b) => {
@@ -820,13 +840,27 @@
             return;
           }
           activeInputs = updatedInputs.filter(t => t.trees > 0);
-          stockTrees -= trees;
-          stockMeters -= formattedMeters;
+          console.log('After applying new output:', activeInputs);
         }
       }
 
-      transactions[editingIndex] = { date: formattedDate, type, displayType, code: formattedCode, trees, meters: formattedMeters, stockTrees, stockMeters };
+      // Bước 3: Cập nhật transactions
       recalculateInventory();
+      stockTrees = (inventory[formattedCode]?.trees || 0);
+      stockMeters = (inventory[formattedCode]?.meters || 0);
+      transactions[editingIndex] = {
+        date: formattedDate,
+        type,
+        displayType,
+        code: formattedCode,
+        trees,
+        meters: formattedMeters,
+        stockTrees,
+        stockMeters
+      };
+      console.log('Updated transaction:', transactions[editingIndex]);
+
+      // Bước 4: Lưu và cập nhật UI
       saveData();
       updateUI();
       bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
