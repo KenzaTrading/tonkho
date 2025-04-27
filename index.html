@@ -17,7 +17,6 @@
     .table-container { max-height: 400px; overflow-y: auto; margin-top: 15px; }
     .table { font-size: 0.9em; }
     .table th, .table td { vertical-align: middle; }
-    .table th:last-child, .table td:last-child { min-width: 80px; }
     .table .total-row { font-weight: bold; background-color: #f8f9fa; }
     .btn { border-radius: 5px; font-size: 0.9em; padding: 10px 20px; }
     .form-control, .form-select { font-size: 0.9em; border-radius: 5px; }
@@ -36,36 +35,29 @@
       .filter-section .col-12, .filter-section .col-md-6 { margin-bottom: 10px; }
       .manage-data-btns { flex-direction: column; align-items: stretch; }
       .form-section input[type="file"] { margin-bottom: 10px; }
-      .form-section { margin-bottom: 20px; }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1 class="text-center mb-4" style="font-size: 1.5em; color: #0d6efd;">Quản lý kho vải</h1>
-
     <div class="card">
-      <!-- Nav tabs -->
       <ul class="nav nav-tabs" id="myTab" role="tablist">
         <li class="nav-item" role="presentation">
-          <button class="nav-link active" id="input-tab" data-bs-toggle="tab" data-bs-target="#input" type="button" role="tab" aria-controls="input" aria-selected="true">Nhập liệu</button>
+          <button class="nav-link active" id="input-tab" data-bs-toggle="tab" data-bs-target="#input" type="button" role="tab">Nhập liệu</button>
         </li>
         <li class="nav-item" role="presentation">
-          <button class="nav-link" id="inventory-tab" data-bs-toggle="tab" data-bs-target="#inventory-tab-content" type="button" role="tab" aria-controls="inventory-tab-content" aria-selected="false">Tồn kho</button>
+          <button class="nav-link" id="inventory-tab" data-bs-toggle="tab" data-bs-target="#inventory-tab-content" type="button" role="tab">Tồn kho</button>
         </li>
         <li class="nav-item" role="presentation">
-          <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="false">Lịch sử giao dịch</button>
+          <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">Lịch sử giao dịch</button>
         </li>
         <li class="nav-item" role="presentation">
-          <button class="nav-link" id="manage-tab" data-bs-toggle="tab" data-bs-target="#manage" type="button" role="tab" aria-controls="manage" aria-selected="false">Quản lý dữ liệu</button>
+          <button class="nav-link" id="manage-tab" data-bs-toggle="tab" data-bs-target="#manage" type="button" role="tab">Quản lý dữ liệu</button>
         </li>
       </ul>
-
-      <!-- Tab content -->
       <div class="tab-content" id="myTabContent">
-        <!-- Tab 1: Nhập liệu -->
-        <div class="tab-pane fade show active" id="input" role="tabpanel" aria-labelledby="input-tab">
-          <!-- Form nhập liệu -->
+        <div class="tab-pane fade show active" id="input" role="tabpanel">
           <div class="form-section">
             <h5>Nhập liệu</h5>
             <div class="row g-3">
@@ -82,37 +74,29 @@
               </div>
               <div class="col-md-2 col-12">
                 <label for="formTrees" class="form-label">Số cây:</label>
-                <input type="number" min="0" step="1" class="form-control" id="formTrees" value="0" placeholder="VD: 0">
+                <input type="number" min="0" step="1" class="form-control" id="formTrees" value="0">
               </div>
               <div class="col-md-2 col-12">
                 <label for="formMeters" class="form-label">Số mét:</label>
-                <input type="number" step="0.1" class="form-control" id="formMeters" value="0.0" placeholder="VD: 100.5">
+                <input type="number" step="0.1" class="form-control" id="formMeters" value="0.0">
               </div>
               <div class="col-md-2 col-12">
                 <label for="formDate" class="form-label">Ngày:</label>
-                <input type="date" class="form-control" id="formDate" value="">
+                <input type="date" class="form-control" id="formDate">
               </div>
             </div>
             <button class="btn btn-primary mt-3" id="processFormButton">Thực hiện</button>
           </div>
-
           <div id="output" class="text-center">Kết quả sẽ hiển thị ở đây...</div>
-
           <h2 class="mt-4" style="font-size: 1.2em;">Cập nhật 5 mã gần nhất</h2>
           <table class="table table-bordered">
             <thead>
-              <tr>
-                <th>Mã vải</th>
-                <th>Số cây</th>
-                <th>Số mét</th>
-              </tr>
+              <tr><th>Mã vải</th><th>Số cây</th><th>Số mét</th></tr>
             </thead>
             <tbody id="recent-inventory"></tbody>
           </table>
         </div>
-
-        <!-- Tab 2: Tồn kho -->
-        <div class="tab-pane fade" id="inventory-tab-content" role="tabpanel" aria-labelledby="inventory-tab">
+        <div class="tab-pane fade" id="inventory-tab-content" role="tabpanel">
           <div class="filter-section">
             <h5>Lọc tồn kho</h5>
             <div class="row g-3">
@@ -137,21 +121,14 @@
           <div class="table-container">
             <table class="table table-bordered">
               <thead>
-                <tr>
-                  <th>Mã vải</th>
-                  <th>Số cây</th>
-                  <th>Số mét</th>
-                  <th>Hành động</th>
-                </tr>
+                <tr><th>Mã vải</th><th>Số cây</th><th>Số mét</th><th>Hành động</th></tr>
               </thead>
               <tbody id="inventory"></tbody>
               <tfoot id="inventory-total" class="total-row"></tfoot>
             </table>
           </div>
         </div>
-
-        <!-- Tab 3: Lịch sử giao dịch -->
-        <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+        <div class="tab-pane fade" id="history" role="tabpanel">
           <div class="filter-section">
             <h5>Lọc giao dịch</h5>
             <div class="row g-3">
@@ -178,16 +155,7 @@
           <h2 class="mt-2" style="font-size: 1.2em;">Lịch sử giao dịch</h2>
           <table class="table table-bordered">
             <thead>
-              <tr>
-                <th>Ngày</th>
-                <th>Loại</th>
-                <th>Mã vải</th>
-                <th>Số cây</th>
-                <th>Số mét</th>
-                <th>Tồn kho (cây)</th>
-                <th>Tồn kho (mét)</th>
-                <th>Hành động</th>
-              </tr>
+              <tr><th>Ngày</th><th>Loại</th><th>Mã vải</th><th>Số cây</th><th>Số mét</th><th>Tồn kho (cây)</th><th>Tồn kho (mét)</th><th>Hành động</th></tr>
             </thead>
             <tbody id="transactions"></tbody>
           </table>
@@ -197,9 +165,7 @@
             <button class="btn btn-outline-primary pagination-btn" id="nextPageButton" disabled>Sau</button>
           </div>
         </div>
-
-        <!-- Tab 4: Quản lý dữ liệu -->
-        <div class="tab-pane fade" id="manage" role="tabpanel" aria-labelledby="manage-tab">
+        <div class="tab-pane fade" id="manage" role="tabpanel">
           <div class="form-section">
             <h5>Xuất dữ liệu tồn kho</h5>
             <button class="btn btn-primary" id="exportInventoryButton">Thực hiện</button>
@@ -221,9 +187,7 @@
       </div>
     </div>
   </div>
-
-  <!-- Modal xác nhận -->
-  <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+  <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -238,9 +202,7 @@
       </div>
     </div>
   </div>
-
-  <!-- Modal chỉnh sửa -->
-  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -279,44 +241,53 @@
       </div>
     </div>
   </div>
-
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // Dữ liệu kho
     let inventory = {};
     let transactions = [];
     let activeInputs = [];
     let inputIdCounter = 1;
-    let pendingCommand = null;
-    let editingIndex = null;
     let currentFilter = { code: '', startDate: '', endDate: '' };
     let currentPage = 1;
     const itemsPerPage = 10;
-
-    // Thiết lập ngày mặc định là hôm nay
     const today = new Date().toISOString().split('T')[0];
+
     document.getElementById('formDate').value = today;
+    document.getElementById('input-tab').addEventListener('shown.bs.tab', () => document.getElementById('formCode').focus());
 
-    // Focus ô Mã vải khi mở tab Nhập liệu
-    document.getElementById('input-tab').addEventListener('shown.bs.tab', function() {
-      document.getElementById('formCode').focus();
-    });
+    const showOutput = (msg) => document.getElementById('output').textContent = msg;
 
-    // Hàm lưu dữ liệu vào localStorage
-    function saveData() {
+    const parseDate = (dateStr) => {
+      if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) return null;
+      const [day, month, year] = dateStr.split('/').map(Number);
+      const date = new Date(year, month - 1, day);
+      return isNaN(date) ? null : date;
+    };
+
+    const formatDate = (date) => new Date(date).toLocaleDateString('vi-VN');
+
+    const validateTransaction = (code, trees, meters, isEdit = false) => {
+      if (!/^\w{6}$/.test(code)) return 'Mã vải phải có đúng 6 ký tự!';
+      if (isNaN(trees) || trees < 0 || isNaN(meters) || meters < 0) return 'Số cây và số mét phải hợp lệ!';
+      if (trees === 0 && meters !== 0) return 'Nếu số cây là 0, số mét phải là 0!';
+      const decimalPart = meters.toString().split('.')[1];
+      if (decimalPart && decimalPart.length > 1) return 'Số mét chỉ được có 1 chữ số thập phân!';
+      return null;
+    };
+
+    const saveData = () => {
       try {
         localStorage.setItem('inventory', JSON.stringify(inventory));
         localStorage.setItem('transactions', JSON.stringify(transactions));
         localStorage.setItem('activeInputs', JSON.stringify(activeInputs));
         localStorage.setItem('inputIdCounter', inputIdCounter);
       } catch (error) {
-        console.error('Lỗi lưu localStorage:', error);
-        document.getElementById('output').textContent = 'Lỗi lưu dữ liệu!';
+        console.error('Lỗi lưu dữ liệu:', error);
+        showOutput('Lỗi lưu dữ liệu!');
       }
-    }
+    };
 
-    // Hàm tải dữ liệu từ localStorage
-    function loadData() {
+    const loadData = () => {
       try {
         inventory = JSON.parse(localStorage.getItem('inventory') || '{}');
         transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
@@ -324,150 +295,92 @@
         inputIdCounter = parseInt(localStorage.getItem('inputIdCounter') || '1');
         updateUI();
       } catch (error) {
-        console.error('Lỗi tải localStorage:', error);
-        document.getElementById('output').textContent = 'Lỗi tải dữ liệu!';
+        console.error('Lỗi tải dữ liệu:', error);
+        showOutput('Lỗi tải dữ liệu!');
       }
-    }
+    };
 
-    // Hàm tính toán lại inventory từ activeInputs
-    function recalculateInventory() {
-      console.log('recalculateInventory called');
+    const recalculateInventory = () => {
       inventory = {};
-      activeInputs.forEach(t => {
-        if (t && t.code && t.trees >= 0 && t.meters >= 0) {
-          inventory[t.code] = inventory[t.code] || { trees: 0, meters: 0 };
-          inventory[t.code].trees += t.trees;
-          inventory[t.code].meters += t.meters;
+      activeInputs.forEach(({ code, trees, meters }) => {
+        if (code && trees >= 0 && meters >= 0) {
+          inventory[code] = inventory[code] || { trees: 0, meters: 0 };
+          inventory[code].trees += trees;
+          inventory[code].meters += meters;
         }
       });
-      transactions.forEach(t => {
-        if (!inventory[t.code]) {
-          inventory[t.code] = { trees: 0, meters: 0 };
-        }
+      transactions.forEach(t => inventory[t.code] = inventory[t.code] || { trees: 0, meters: 0 });
+    };
+
+    const showConfirmation = (message, callback) => {
+      document.getElementById('confirmationMessage').textContent = message;
+      const modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+      modal.show();
+      const confirmButton = document.getElementById('confirmButton');
+      const newButton = confirmButton.cloneNode(true);
+      confirmButton.parentNode.replaceChild(newButton, confirmButton);
+      newButton.addEventListener('click', () => {
+        callback();
+        modal.hide();
       });
-    }
+    };
 
-    // Hàm điền form lệnh Xuất từ Tab Tồn kho
-    function fillExportForm(code, trees, meters) {
-      console.log('fillExportForm called:', { code, trees, meters });
-      const inputTab = new bootstrap.Tab(document.getElementById('input-tab'));
-      inputTab.show();
-      document.getElementById('formType').value = 'x';
-      document.getElementById('formCode').value = code.replace('-', '');
-      document.getElementById('formTrees').value = trees;
-      document.getElementById('formMeters').value = meters.toFixed(1);
-    }
-
-    // Hàm chuyển đổi ngày DD/MM/YYYY sang Date
-    function parseDate(dateStr) {
-      if (!dateStr || !/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) return null;
-      const [day, month, year] = dateStr.split('/').map(Number);
-      const date = new Date(year, month - 1, day);
-      return isNaN(date) ? null : date;
-    }
-
-    // Cập nhật giao diện
-    function updateUI() {
-      console.log('updateUI called');
-      // Cập nhật 5 mã gần nhất
+    const updateRecentInventory = () => {
       const recentInventoryBody = document.getElementById('recent-inventory');
-      recentInventoryBody.innerHTML = '';
-      // Sắp xếp giao dịch theo ngày giảm dần
       const sortedTransactions = [...transactions]
         .filter(t => t.date && parseDate(t.date))
         .sort((a, b) => parseDate(b.date) - parseDate(a.date));
-      // Lấy 5 mã vải duy nhất
-      const recentCodes = [];
-      const seenCodes = new Set();
-      for (const t of sortedTransactions) {
-        if (!seenCodes.has(t.code)) {
-          recentCodes.push(t.code);
-          seenCodes.add(t.code);
-        }
-        if (recentCodes.length >= 5) break;
-      }
+      const recentCodes = [...new Set(sortedTransactions.map(t => t.code))].slice(0, 5);
+      recentInventoryBody.innerHTML = recentCodes.length === 0
+        ? '<tr><td colspan="3" class="text-center">Chưa có giao dịch</td></tr>'
+        : recentCodes.map(code => {
+            const { trees = 0, meters = 0 } = inventory[code] || {};
+            return `<tr><td>${code}</td><td>${trees}</td><td>${meters.toFixed(1)} m</td></tr>`;
+          }).join('');
       console.log('Recent codes:', recentCodes);
-      if (recentCodes.length === 0) {
-        recentInventoryBody.innerHTML = '<tr><td colspan="3" class="text-center">Chưa có giao dịch</td></tr>';
-      } else {
-        recentCodes.forEach(code => {
-          const data = inventory[code] || { trees: 0, meters: 0 };
-          recentInventoryBody.innerHTML += `<tr><td>${code}</td><td>${data.trees}</td><td>${data.meters.toFixed(1)} m</td></tr>`;
-        });
-      }
+    };
 
-      // Cập nhật tồn kho
+    const updateInventoryTable = () => {
       const inventoryBody = document.getElementById('inventory');
       const inventoryTotal = document.getElementById('inventory-total');
-      inventoryBody.innerHTML = '';
-      inventoryTotal.innerHTML = '';
       const fabricType = document.getElementById('searchFabricType').value;
       const color = document.getElementById('searchColor').value;
-      let totalTrees = 0;
-      let totalMeters = 0;
-      const filteredCodes = Object.keys(inventory).filter(code => {
-        return (
-          (!fabricType || code.startsWith(fabricType + '-')) &&
-          (!color || code.endsWith('-' + color))
-        );
-      });
-      const pageCodes = filteredCodes;
-      pageCodes.forEach(code => {
-        const data = inventory[code];
-        inventoryBody.innerHTML += `
-          <tr>
-            <td>${code}</td>
-            <td>${data.trees}</td>
-            <td>${data.meters.toFixed(1)} m</td>
-            <td>
-              <button class="btn btn-sm btn-primary action-btn export-btn" data-code="${code}" data-trees="${data.trees}" data-meters="${data.meters}" ${data.trees === 0 && data.meters === 0 ? 'disabled' : ''}>Xuất</button>
-            </td>
-          </tr>`;
-        totalTrees += data.trees;
-        totalMeters += data.meters;
-      });
-      if (pageCodes.length > 0) {
-        inventoryTotal.innerHTML = `<tr class="total-row"><td>Tổng</td><td>${totalTrees}</td><td>${totalMeters.toFixed(1)} m</td><td></td></tr>`;
-      }
-
-      // Gắn sự kiện cho nút Xuất
+      let totalTrees = 0, totalMeters = 0;
+      const filteredCodes = Object.keys(inventory).filter(code =>
+        (!fabricType || code.startsWith(fabricType + '-')) && (!color || code.endsWith('-' + color))
+      );
+      inventoryBody.innerHTML = filteredCodes.map(code => {
+        const { trees, meters } = inventory[code];
+        totalTrees += trees;
+        totalMeters += meters;
+        return `<tr>
+          <td>${code}</td>
+          <td>${trees}</td>
+          <td>${meters.toFixed(1)} m</td>
+          <td><button class="btn btn-sm btn-primary action-btn export-btn" data-code="${code}" data-trees="${trees}" data-meters="${meters}" ${trees === 0 && meters === 0 ? 'disabled' : ''}>Xuất</button></td>
+        </tr>`;
+      }).join('');
+      inventoryTotal.innerHTML = filteredCodes.length > 0
+        ? `<tr class="total-row"><td>Tổng</td><td>${totalTrees}</td><td>${totalMeters.toFixed(1)} m</td><td></td></tr>`
+        : '';
       document.querySelectorAll('.export-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const code = btn.getAttribute('data-code');
           const trees = parseInt(btn.getAttribute('data-trees'));
           const meters = parseFloat(btn.getAttribute('data-meters'));
-          fillExportForm(code, trees, meters);
+          bootstrap.Tab.getOrCreateInstance(document.getElementById('input-tab')).show();
+          document.getElementById('formType').value = 'x';
+          document.getElementById('formCode').value = code.replace('-', '');
+          document.getElementById('formTrees').value = trees;
+          document.getElementById('formMeters').value = meters.toFixed(1);
         });
       });
+    };
 
-      // Cập nhật dropdown tìm kiếm
-      const fabricTypeSelect = document.getElementById('searchFabricType');
-      const colorSelect = document.getElementById('searchColor');
-      const filterSelect = document.getElementById('filterCode');
-      const fabricTypes = [...new Set(Object.keys(inventory).map(code => code.split('-')[0]))].sort();
-      const colors = [...new Set(Object.keys(inventory).map(code => code.split('-')[1]))].sort();
-      const existingCodes = [...new Set(transactions.map(t => t.code))].sort();
-      
-      fabricTypeSelect.innerHTML = '<option value="">Tất cả loại vải</option>';
-      fabricTypes.forEach(type => {
-        fabricTypeSelect.innerHTML += `<option value="${type}">${type}</option>`;
-      });
-      
-      colorSelect.innerHTML = '<option value="">Tất cả màu</option>';
-      colors.forEach(color => {
-        colorSelect.innerHTML += `<option value="${color}">${color}</option>`;
-      });
-      
-      filterSelect.innerHTML = '<option value="">Tất cả mã</option>';
-      existingCodes.forEach(code => {
-        filterSelect.innerHTML += `<option value="${code}">${code}</option>`;
-      });
-
-      // Cập nhật lịch sử giao dịch
+    const updateHistoryTable = () => {
       const transactionsBody = document.getElementById('transactions');
-      transactionsBody.innerHTML = '';
       const filteredTransactions = transactions.filter(t => {
-        if (!t || !t.date || !t.code) return false;
+        if (!t?.date || !t?.code) return false;
         const date = parseDate(t.date);
         if (!date) return false;
         const startDate = currentFilter.startDate ? new Date(currentFilter.startDate) : null;
@@ -481,234 +394,171 @@
       const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
       currentPage = Math.min(currentPage, totalPages || 1);
       const start = (currentPage - 1) * itemsPerPage;
-      const end = start + itemsPerPage;
-      const pageTransactions = filteredTransactions.slice(start, end);
-      pageTransactions.forEach((t, index) => {
-        if (t && t.date && t.displayType && t.code && t.trees !== undefined && t.meters !== undefined && t.stockTrees !== undefined && t.stockMeters !== undefined) {
-          const globalIndex = start + index;
-          const row = `
-            <tr>
-              <td>${t.date}</td>
-              <td>${t.displayType}</td>
-              <td>${t.code}</td>
-              <td>${t.trees}</td>
-              <td>${t.meters.toFixed(1)} m</td>
-              <td>${t.stockTrees}</td>
-              <td>${t.stockMeters.toFixed(1)} m</td>
-              <td>
-                <button class="btn btn-sm btn-warning action-btn edit-btn" data-index="${globalIndex}">Sửa</button>
-                <button class="btn btn-sm btn-danger action-btn delete-btn" data-index="${globalIndex}">Xóa</button>
-              </td>
-            </tr>`;
-          transactionsBody.innerHTML += row;
-        }
-      });
-
-      // Gắn sự kiện cho nút Sửa và Xóa
-      document.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const index = parseInt(btn.getAttribute('data-index'));
-          editTransaction(index);
-        });
-      });
-      document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const index = parseInt(btn.getAttribute('data-index'));
-          deleteTransaction(index);
-        });
-      });
-
-      // Cập nhật phân trang lịch sử
+      const pageTransactions = filteredTransactions.slice(start, start + itemsPerPage);
+      transactionsBody.innerHTML = pageTransactions.map((t, i) => `
+        <tr>
+          <td>${t.date}</td>
+          <td>${t.displayType}</td>
+          <td>${t.code}</td>
+          <td>${t.trees}</td>
+          <td>${t.meters.toFixed(1)} m</td>
+          <td>${t.stockTrees}</td>
+          <td>${t.stockMeters.toFixed(1)} m</td>
+          <td>
+            <button class="btn btn-sm btn-warning action-btn edit-btn" data-index="${start + i}">Sửa</button>
+            <button class="btn btn-sm btn-danger action-btn delete-btn" data-index="${start + i}">Xóa</button>
+          </td>
+        </tr>`).join('');
       document.getElementById('pageInfo').textContent = `Trang ${currentPage}/${totalPages || 1}`;
       document.getElementById('prevPageButton').disabled = currentPage === 1;
       document.getElementById('nextPageButton').disabled = currentPage === totalPages || totalPages === 0;
-    }
+      document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', () => editTransaction(parseInt(btn.getAttribute('data-index')))));
+      document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', () => deleteTransaction(parseInt(btn.getAttribute('data-index')))));
+    };
 
-    // Xử lý lệnh từ form
-    function processFormCommand() {
-      console.log('processFormCommand called');
+    const updateDropdowns = () => {
+      const fabricTypeSelect = document.getElementById('searchFabricType');
+      const colorSelect = document.getElementById('searchColor');
+      const filterSelect = document.getElementById('filterCode');
+      const fabricTypes = [...new Set(Object.keys(inventory).map(code => code.split('-')[0]))].sort();
+      const colors = [...new Set(Object.keys(inventory).map(code => code.split('-')[1]))].sort();
+      const codes = [...new Set(transactions.map(t => t.code))].sort();
+      fabricTypeSelect.innerHTML = '<option value="">Tất cả loại vải</option>' + fabricTypes.map(type => `<option value="${type}">${type}</option>`).join('');
+      colorSelect.innerHTML = '<option value="">Tất cả màu</option>' + colors.map(color => `<option value="${color}">${color}</option>`).join('');
+      filterSelect.innerHTML = '<option value="">Tất cả mã</option>' + codes.map(code => `<option value="${code}">${code}</option>`).join('');
+    };
+
+    const updateUI = () => {
+      updateRecentInventory();
+      updateInventoryTable();
+      updateHistoryTable();
+      updateDropdowns();
+    };
+
+    const processOutputTransaction = (code, trees, meters, formattedDate, stockTrees, stockMeters) => {
+      if (trees === 0 && meters === 0) return true;
+      if ((inventory[code]?.trees || 0) < trees || (inventory[code]?.meters || 0) < meters) {
+        showOutput(`Không đủ tồn kho mã ${code}. Tồn kho: ${inventory[code]?.trees || 0} cây, ${(inventory[code]?.meters || 0).toFixed(1)} mét.`);
+        return false;
+      }
+      let remainingTrees = trees, remainingMeters = meters;
+      const matchingInputs = activeInputs.filter(t => t.code === code && t.trees > 0).sort((a, b) => parseDate(a.date) - parseDate(b.date));
+      const updatedInputs = [...activeInputs];
+      let valid = false;
+      for (let input of matchingInputs) {
+        if (remainingTrees <= 0 || remainingMeters <= 0) break;
+        const inputIndex = updatedInputs.findIndex(t => t.id === input.id);
+        const metersPerTree = input.meters / input.trees;
+        if (metersPerTree === meters / trees) {
+          const treesToDeduct = Math.min(remainingTrees, input.trees);
+          const metersToDeduct = treesToDeduct * metersPerTree;
+          updatedInputs[inputIndex].trees -= treesToDeduct;
+          updatedInputs[inputIndex].meters -= metersToDeduct;
+          remainingTrees -= treesToDeduct;
+          remainingMeters -= metersToDeduct;
+          valid = true;
+        }
+      }
+      if (!valid || remainingTrees > 0 || remainingMeters > 0) {
+        showOutput(`Không tìm thấy giao dịch nhập phù hợp cho ${trees} cây, ${meters.toFixed(1)} mét mã ${code}.`);
+        return false;
+      }
+      activeInputs = updatedInputs.filter(t => t.trees > 0);
+      return true;
+    };
+
+    const processFormCommand = () => {
       const type = document.getElementById('formType').value;
       const code = document.getElementById('formCode').value.trim().toUpperCase();
-      let trees = parseInt(document.getElementById('formTrees').value);
-      let meters = parseFloat(document.getElementById('formMeters').value);
+      const trees = parseInt(document.getElementById('formTrees').value);
+      const meters = parseFloat(document.getElementById('formMeters').value);
       const date = document.getElementById('formDate').value || today;
 
-      if (!code || code.length !== 6) {
-        document.getElementById('output').textContent = 'Mã vải phải có đúng 6 ký tự!';
-        return;
-      }
-
-      let formattedMeters = meters;
-      if (trees === 0) {
-        formattedMeters = 0;
-      } else if (isNaN(trees) || trees < 0 || isNaN(meters) || meters < 0) {
-        document.getElementById('output').textContent = 'Vui lòng nhập số cây và số mét hợp lệ!';
-        return;
-      } else {
-        const metersStr = meters.toString();
-        const decimalPart = metersStr.split('.')[1];
-        if (decimalPart && decimalPart.length > 1) {
-          document.getElementById('output').textContent = 'Số mét chỉ được có 1 chữ số thập phân!';
-          return;
-        }
-        formattedMeters = parseFloat(meters.toFixed(1));
-      }
+      const error = validateTransaction(code, trees, meters);
+      if (error) return showOutput(error);
 
       const formattedCode = code.slice(0, 3) + '-' + code.slice(3);
-      const formattedDate = new Date(date).toLocaleDateString('vi-VN');
+      const formattedMeters = parseFloat(meters.toFixed(1));
+      const formattedDate = formatDate(date);
       let stockTrees = (inventory[formattedCode]?.trees || 0);
       let stockMeters = (inventory[formattedCode]?.meters || 0);
+
+      const transaction = {
+        date: formattedDate,
+        type,
+        displayType: type === 'n' ? 'nhập' : 'xuất',
+        code: formattedCode,
+        trees,
+        meters: formattedMeters,
+        stockTrees,
+        stockMeters
+      };
 
       if (type === 'n') {
         stockTrees += trees;
         stockMeters += formattedMeters;
-        pendingCommand = { date: formattedDate, type, displayType: 'nhập', code: formattedCode, trees, meters: formattedMeters, stockTrees, stockMeters };
-        showConfirmation(`Xác nhận nhập mã ${formattedCode} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}? Tồn kho sẽ là ${stockTrees} cây, ${stockMeters.toFixed(1)} mét.`, () => {
+        transaction.stockTrees = stockTrees;
+        transaction.stockMeters = stockMeters;
+        showConfirmation(`Xác nhận nhập mã ${formattedCode} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}? Tồn kho: ${stockTrees} cây, ${stockMeters.toFixed(1)} mét.`, () => {
           if (trees > 0 || formattedMeters > 0) {
-            activeInputs.push({
-              id: inputIdCounter++,
-              date: formattedDate,
-              code: formattedCode,
-              trees,
-              meters: formattedMeters
-            });
+            activeInputs.push({ id: inputIdCounter++, date: formattedDate, code: formattedCode, trees, meters: formattedMeters });
           }
           inventory[formattedCode] = { trees: stockTrees, meters: stockMeters };
-          transactions.push(pendingCommand);
+          transactions.push(transaction);
           saveData();
           updateUI();
-          document.getElementById('output').textContent = 'Đã cập nhật thành công!';
-          pendingCommand = null;
+          showOutput('Đã cập nhật thành công!');
           document.getElementById('formCode').value = '';
           document.getElementById('formTrees').value = '0';
           document.getElementById('formMeters').value = '0.0';
         });
-      } else if (type === 'x') {
-        if (trees === 0 && formattedMeters === 0) {
-          pendingCommand = { date: formattedDate, type, displayType: 'xuất', code: formattedCode, trees, meters: formattedMeters, stockTrees, stockMeters };
-          showConfirmation(`Xác nhận xuất mã ${formattedCode} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}? Tồn kho sẽ là ${stockTrees} cây, ${stockMeters.toFixed(1)} mét.`, () => {
-            inventory[formattedCode] = { trees: stockTrees, meters: stockMeters };
-            transactions.push(pendingCommand);
-            saveData();
-            updateUI();
-            document.getElementById('output').textContent = 'Đã cập nhật thành công!';
-            pendingCommand = null;
-            document.getElementById('formCode').value = '';
-            document.getElementById('formTrees').value = '0';
-            document.getElementById('formMeters').value = '0.0';
-          });
-        } else {
-          if ((inventory[formattedCode]?.trees || 0) < trees || (inventory[formattedCode]?.meters || 0) < formattedMeters) {
-            document.getElementById('output').textContent = `Lỗi: Không đủ tồn kho mã ${formattedCode}. Tồn kho hiện tại: ${inventory[formattedCode]?.trees || 0} cây, ${(inventory[formattedCode]?.meters || 0).toFixed(1)} mét.`;
-            return;
-          }
-          let remainingTrees = trees;
-          let remainingMeters = formattedMeters;
-          const matchingInputs = activeInputs.filter(t => t.code === formattedCode && t.trees > 0).sort((a, b) => {
-            const dateA = parseDate(a.date);
-            const dateB = parseDate(b.date);
-            return dateA - dateB;
-          });
-          const updatedInputs = [...activeInputs];
-          let valid = false;
-          for (let input of matchingInputs) {
-            if (remainingTrees <= 0 || remainingMeters <= 0) break;
-            const inputIndex = updatedInputs.findIndex(t => t.id === input.id);
-            const metersPerTree = input.meters / input.trees;
-            if (metersPerTree === formattedMeters / trees) {
-              const treesToDeduct = Math.min(remainingTrees, input.trees);
-              const metersToDeduct = treesToDeduct * metersPerTree;
-              updatedInputs[inputIndex].trees -= treesToDeduct;
-              updatedInputs[inputIndex].meters -= metersToDeduct;
-              remainingTrees -= treesToDeduct;
-              remainingMeters -= metersToDeduct;
-              valid = true;
-            }
-          }
-          if (!valid || remainingTrees > 0 || remainingMeters > 0) {
-            document.getElementById('output').textContent = `Lỗi: Không tìm thấy giao dịch nhập phù hợp cho ${trees} cây, ${formattedMeters.toFixed(1)} mét mã ${formattedCode}.`;
-            return;
-          }
-          stockTrees -= trees;
-          stockMeters -= formattedMeters;
-          pendingCommand = { date: formattedDate, type, displayType: 'xuất', code: formattedCode, trees, meters: formattedMeters, stockTrees, stockMeters };
-          showConfirmation(`Xác nhận xuất mã ${formattedCode} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}? Tồn kho sẽ là ${stockTrees} cây, ${stockMeters.toFixed(1)} mét.`, () => {
-            activeInputs = updatedInputs.filter(t => t.trees > 0);
-            inventory[formattedCode] = { trees: stockTrees, meters: stockMeters };
-            transactions.push(pendingCommand);
-            saveData();
-            updateUI();
-            document.getElementById('output').textContent = 'Đã cập nhật thành công!';
-            pendingCommand = null;
-            document.getElementById('formCode').value = '';
-            document.getElementById('formTrees').value = '0';
-            document.getElementById('formMeters').value = '0.0';
-          });
-        }
+      } else {
+        if (!processOutputTransaction(formattedCode, trees, formattedMeters, formattedDate, stockTrees, stockMeters)) return;
+        stockTrees -= trees;
+        stockMeters -= formattedMeters;
+        transaction.stockTrees = stockTrees;
+        transaction.stockMeters = stockMeters;
+        showConfirmation(`Xác nhận xuất mã ${formattedCode} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}? Tồn kho: ${stockTrees} cây, ${stockMeters.toFixed(1)} mét.`, () => {
+          inventory[formattedCode] = { trees: stockTrees, meters: stockMeters };
+          transactions.push(transaction);
+          saveData();
+          updateUI();
+          showOutput('Đã cập nhật thành công!');
+          document.getElementById('formCode').value = '';
+          document.getElementById('formTrees').value = '0';
+          document.getElementById('formMeters').value = '0.0';
+        });
       }
-    }
+    };
 
-    // Hiển thị popup xác nhận
-    function showConfirmation(message, callback) {
-      console.log('showConfirmation called:', message);
-      document.getElementById('confirmationMessage').textContent = message;
-      const modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
-      modal.show();
-      const confirmButton = document.getElementById('confirmButton');
-      const newConfirmButton = confirmButton.cloneNode(true);
-      confirmButton.parentNode.replaceChild(newConfirmButton, confirmButton);
-      newConfirmButton.addEventListener('click', () => {
-        console.log('Confirm button clicked');
-        if (callback) callback();
-        modal.hide();
-      });
-    }
-
-    // Xóa giao dịch
-    function deleteTransaction(index) {
-      console.log('deleteTransaction called:', index);
+    const deleteTransaction = (index) => {
       showConfirmation('Bạn có chắc muốn xóa giao dịch này?', () => {
         const transaction = transactions[index];
         if (transaction.type === 'n') {
           activeInputs = activeInputs.filter(t => !(t.code === transaction.code && t.trees === transaction.trees && t.meters === transaction.meters && t.date === transaction.date));
         } else if (transaction.type === 'x' && (transaction.trees > 0 || transaction.meters > 0)) {
-          const matchingInputs = transactions.slice(0, index).reverse().filter(t => t.type === 'n' && t.code === transaction.code);
-          let treesToRestore = transaction.trees;
-          let metersToRestore = transaction.meters;
-          for (let input of matchingInputs) {
-            if (treesToRestore <= 0 || metersToRestore <= 0) break;
-            const metersPerTree = input.meters / input.trees;
-            if (metersPerTree === metersToRestore / treesToRestore) {
-              const existingInput = activeInputs.find(t => t.code === input.code && t.date === input.date && t.trees === 0);
-              if (existingInput) {
-                existingInput.trees += input.trees;
-                existingInput.meters += input.meters;
-              } else {
-                activeInputs.push({
-                  id: inputIdCounter++,
-                  date: input.date,
-                  code: input.code,
-                  trees: input.trees,
-                  meters: input.meters
-                });
+          let treesToRestore = transaction.trees, metersToRestore = transaction.meters;
+          transactions.slice(0, index).reverse()
+            .filter(t => t.type === 'n' && t.code === transaction.code)
+            .some(input => {
+              if (treesToRestore <= 0 || metersToRestore <= 0) return true;
+              const metersPerTree = input.meters / input.trees;
+              if (metersPerTree === metersToRestore / treesToRestore) {
+                activeInputs.push({ id: inputIdCounter++, date: input.date, code: input.code, trees: input.trees, meters: input.meters });
+                treesToRestore -= input.trees;
+                metersToRestore -= input.meters;
               }
-              treesToRestore -= input.trees;
-              metersToRestore -= input.meters;
-            }
-          }
+            });
         }
         transactions.splice(index, 1);
         recalculateInventory();
         saveData();
         updateUI();
-        document.getElementById('output').textContent = 'Đã xóa giao dịch!';
+        showOutput('Đã xóa giao dịch!');
       });
-    }
+    };
 
-    // Chỉnh sửa giao dịch
-    function editTransaction(index) {
-      console.log('editTransaction called:', index);
-      editingIndex = index;
+    const editTransaction = (index) => {
       const t = transactions[index];
       if (!t) return;
       document.getElementById('editType').value = t.type;
@@ -717,199 +567,96 @@
       document.getElementById('editTrees').value = t.trees;
       const [day, month, year] = t.date.split('/');
       document.getElementById('editDate').value = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-      const modal = new bootstrap.Modal(document.getElementById('editModal'));
-      modal.show();
-    }
+      bootstrap.Modal.getOrCreateInstance(document.getElementById('editModal')).show();
+      document.getElementById('saveEditButton').onclick = () => saveEditTransaction(index);
+    };
 
-    // Lưu giao dịch đã chỉnh sửa
-    function saveEditTransaction() {
-      console.log('saveEditTransaction called, editingIndex:', editingIndex);
+    const saveEditTransaction = (index) => {
       const type = document.getElementById('editType').value;
       const code = document.getElementById('editCode').value.trim().toUpperCase();
-      let trees = parseInt(document.getElementById('editTrees').value);
-      let meters = parseFloat(document.getElementById('editMeters').value);
+      const trees = parseInt(document.getElementById('editTrees').value);
+      const meters = parseFloat(document.getElementById('editMeters').value);
       const date = document.getElementById('editDate').value;
 
-      if (!code || code.length !== 6) {
-        document.getElementById('output').textContent = 'Mã vải phải có đúng 6 ký tự!';
-        return;
-      }
-
-      let formattedMeters = meters;
-      if (trees === 0) {
-        formattedMeters = 0;
-      } else if (isNaN(trees) || trees < 0 || isNaN(meters) || meters < 0) {
-        document.getElementById('output').textContent = 'Vui lòng nhập số cây và số mét hợp lệ!';
-        return;
-      } else {
-        const metersStr = meters.toString();
-        const decimalPart = metersStr.split('.')[1];
-        if (decimalPart && decimalPart.length > 1) {
-          document.getElementById('output').textContent = 'Số mét chỉ được có 1 chữ số thập phân!';
-        }
-        formattedMeters = parseFloat(meters.toFixed(1));
-      }
+      const error = validateTransaction(code, trees, meters, true);
+      if (error) return showOutput(error);
 
       const formattedCode = code.slice(0, 3) + '-' + code.slice(3);
-      const formattedDate = new Date(date).toLocaleDateString('vi-VN');
-      const displayType = type === 'n' ? 'nhập' : 'xuất';
+      const formattedMeters = parseFloat(meters.toFixed(1));
+      const formattedDate = formatDate(date);
 
-      const oldTransaction = transactions[editingIndex];
-      console.log('Old transaction:', oldTransaction);
-
+      const oldTransaction = transactions[index];
       if (oldTransaction.type === 'n') {
-        activeInputs = activeInputs.filter(t => !(
-          t.code === oldTransaction.code &&
-          t.trees === oldTransaction.trees &&
-          t.meters === oldTransaction.meters &&
-          t.date === oldTransaction.date
-        ));
-        console.log('After removing old input:', activeInputs);
+        activeInputs = activeInputs.filter(t => !(t.code === oldTransaction.code && t.trees === oldTransaction.trees && t.meters === oldTransaction.meters && t.date === oldTransaction.date));
       } else if (oldTransaction.type === 'x' && (oldTransaction.trees > 0 || oldTransaction.meters > 0)) {
-        const matchingInputs = transactions.slice(0, editingIndex).reverse().filter(t => t.type === 'n' && t.code === oldTransaction.code);
-        let treesToRestore = oldTransaction.trees;
-        let metersToRestore = oldTransaction.meters;
-        for (let input of matchingInputs) {
-          if (treesToRestore <= 0 || metersToRestore <= 0) break;
-          const metersPerTree = input.meters / input.trees;
-          if (metersPerTree === metersToRestore / treesToRestore) {
-            const existingInput = activeInputs.find(t => t.code === input.code && t.date === input.date && t.trees === 0);
-            if (existingInput) {
-              existingInput.trees += input.trees;
-              existingInput.meters += input.meters;
-            } else {
-              activeInputs.push({
-                id: inputIdCounter++,
-                date: input.date,
-                code: input.code,
-                trees: input.trees,
-                meters: input.meters
-              });
+        let treesToRestore = oldTransaction.trees, metersToRestore = oldTransaction.meters;
+        transactions.slice(0, index).reverse()
+          .filter(t => t.type === 'n' && t.code === oldTransaction.code)
+          .some(input => {
+            if (treesToRestore <= 0 || metersToRestore <= 0) return true;
+            const metersPerTree = input.meters / input.trees;
+            if (metersPerTree === metersToRestore / treesToRestore) {
+              activeInputs.push({ id: inputIdCounter++, date: input.date, code: input.code, trees: input.trees, meters: input.meters });
+              treesToRestore -= input.trees;
+              metersToRestore -= input.meters;
             }
-            treesToRestore -= input.trees;
-            metersToRestore -= input.meters;
-          }
-        }
-        console.log('After restoring old output:', activeInputs);
+          });
       }
 
-      let stockTrees = (inventory[formattedCode]?.trees || 0);
-      let stockMeters = (inventory[formattedCode]?.meters || 0);
-
-      if (type === 'n') {
-        if (trees > 0 || formattedMeters > 0) {
-          activeInputs.push({
-            id: inputIdCounter++,
-            date: formattedDate,
-            code: formattedCode,
-            trees,
-            meters: formattedMeters
-          });
-        }
-        console.log('After adding new input:', activeInputs);
-      } else if (type === 'x') {
-        if (trees === 0 && formattedMeters === 0) {
-        } else {
-          recalculateInventory();
-          if ((inventory[formattedCode]?.trees || 0) < trees || (inventory[formattedCode]?.meters || 0) < formattedMeters) {
-            document.getElementById('output').textContent = `Lỗi: Không đủ tồn kho mã ${formattedCode}. Tồn kho hiện tại: ${inventory[formattedCode]?.trees || 0} cây, ${(inventory[formattedCode]?.meters || 0).toFixed(1)} mét.`;
-            return;
-          }
-          let remainingTrees = trees;
-          let remainingMeters = formattedMeters;
-          const matchingInputs = activeInputs.filter(t => t.code === formattedCode && t.trees > 0).sort((a, b) => {
-            const dateA = parseDate(a.date);
-            const dateB = parseDate(b.date);
-            return dateA - dateB;
-          });
-          const updatedInputs = [...activeInputs];
-          let valid = false;
-          for (let input of matchingInputs) {
-            if (remainingTrees <= 0 || remainingMeters <= 0) break;
-            const inputIndex = updatedInputs.findIndex(t => t.id === input.id);
-            const metersPerTree = input.meters / input.trees;
-            if (metersPerTree === formattedMeters / trees) {
-              const treesToDeduct = Math.min(remainingTrees, input.trees);
-              const metersToDeduct = treesToDeduct * metersPerTree;
-              updatedInputs[inputIndex].trees -= treesToDeduct;
-              updatedInputs[inputIndex].meters -= metersToDeduct;
-              remainingTrees -= treesToDeduct;
-              remainingMeters -= metersToDeduct;
-              valid = true;
-            }
-          }
-          if (!valid || remainingTrees > 0 || remainingMeters > 0) {
-            document.getElementById('output').textContent = `Lỗi: Không tìm thấy giao dịch nhập phù hợp cho ${trees} cây, ${formattedMeters.toFixed(1)} mét mã ${formattedCode}.`;
-            return;
-          }
-          activeInputs = updatedInputs.filter(t => t.trees > 0);
-          console.log('After applying new output:', activeInputs);
-        }
+      if (type === 'n' && (trees > 0 || formattedMeters > 0)) {
+        activeInputs.push({ id: inputIdCounter++, date: formattedDate, code: formattedCode, trees, meters: formattedMeters });
+      } else if (type === 'x' && (trees > 0 || formattedMeters > 0)) {
+        recalculateInventory();
+        if (!processOutputTransaction(formattedCode, trees, formattedMeters, formattedDate)) return;
       }
 
       recalculateInventory();
-      stockTrees = (inventory[formattedCode]?.trees || 0);
-      stockMeters = (inventory[formattedCode]?.meters || 0);
-      transactions[editingIndex] = {
+      transactions[index] = {
         date: formattedDate,
         type,
-        displayType,
+        displayType: type === 'n' ? 'nhập' : 'xuất',
         code: formattedCode,
         trees,
         meters: formattedMeters,
-        stockTrees,
-        stockMeters
+        stockTrees: inventory[formattedCode]?.trees || 0,
+        stockMeters: inventory[formattedCode]?.meters || 0
       };
-      console.log('Updated transaction:', transactions[editingIndex]);
 
       saveData();
       updateUI();
       bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
-      document.getElementById('output').textContent = 'Đã chỉnh sửa giao dịch!';
-      editingIndex = null;
-    }
+      showOutput('Đã chỉnh sửa giao dịch!');
+    };
 
-    // Áp dụng bộ lọc tồn kho
-    function applyInventoryFilter() {
-      console.log('applyInventoryFilter called');
-      updateUI();
-    }
+    const applyInventoryFilter = () => updateUI();
 
-    // Áp dụng bộ lọc lịch sử
-    function applyFilter() {
-      console.log('applyFilter called');
+    const applyFilter = () => {
       currentFilter.code = document.getElementById('filterCode').value;
       currentFilter.startDate = document.getElementById('filterStartDate').value;
       currentFilter.endDate = document.getElementById('filterEndDate').value;
       currentPage = 1;
       updateUI();
-    }
+    };
 
-    // Xóa bộ lọc lịch sử
-    function clearHistoryFilter() {
-      console.log('clearHistoryFilter called');
+    const clearHistoryFilter = () => {
       document.getElementById('filterCode').value = '';
       document.getElementById('filterStartDate').value = '';
       document.getElementById('filterEndDate').value = '';
       currentFilter = { code: '', startDate: '', endDate: '' };
       currentPage = 1;
       updateUI();
-    }
+    };
 
-    // Chuyển trang trước (lịch sử)
-    function prevPage() {
-      console.log('prevPage called');
+    const prevPage = () => {
       if (currentPage > 1) {
         currentPage--;
         updateUI();
       }
-    }
+    };
 
-    // Chuyển trang sau (lịch sử)
-    function nextPage() {
-      console.log('nextPage called');
+    const nextPage = () => {
       const filteredTransactions = transactions.filter(t => {
-        if (!t || !t.date || !t.code) return false;
+        if (!t?.date || !t?.code) return false;
         const date = parseDate(t.date);
         if (!date) return false;
         const startDate = currentFilter.startDate ? new Date(currentFilter.startDate) : null;
@@ -925,110 +672,70 @@
         currentPage++;
         updateUI();
       }
-    }
+    };
 
-    // Tab Quản lý dữ liệu: Xác nhận và xử lý
-    function showExportInventoryConfirmation() {
-      console.log('showExportInventoryConfirmation called');
+    const exportCSV = (filename, headers, rows) => {
+      const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    const showExportInventoryConfirmation = () => {
       showConfirmation('Xác nhận xuất dữ liệu tồn kho?', () => {
-        console.log('Export inventory confirmed');
         const headers = ['Mã vải', 'Số cây', 'Số mét'];
-        const rows = Object.keys(inventory).map(code => [
-          `"${code}"`,
-          inventory[code].trees,
-          inventory[code].meters.toFixed(1)
-        ]);
-        const csvContent = [
-          headers.join(','),
-          ...rows.map(row => row.join(','))
-        ].join('\n');
-        const BOM = '\uFEFF';
-        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        const date = new Date().toISOString().split('T')[0].replace(/-/g, '');
-        a.href = url;
-        a.download = `tonkho_${date}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-        document.getElementById('output').textContent = 'Đã xuất dữ liệu tồn kho!';
+        const rows = Object.keys(inventory).map(code => [`"${code}"`, inventory[code].trees, inventory[code].meters.toFixed(1)]);
+        exportCSV(`tonkho_${new Date().toISOString().split('T')[0].replace(/-/g, '')}.csv`, headers, rows);
+        showOutput('Đã xuất dữ liệu tồn kho!');
       });
-    }
+    };
 
-    function showImportConfirmation() {
-      console.log('showImportConfirmation called');
+    const showImportConfirmation = () => {
       const fileInput = document.getElementById('importTransactions');
       const file = fileInput.files[0];
-      if (!file) {
-        document.getElementById('output').textContent = 'Vui lòng chọn file CSV!';
-        return;
-      }
-      if (!file.name.endsWith('.csv')) {
-        document.getElementById('output').textContent = 'Vui lòng chọn file CSV!';
-        return;
-      }
+      if (!file || !file.name.endsWith('.csv')) return showOutput('Vui lòng chọn file CSV!');
       showConfirmation('Import sẽ ghi đè dữ liệu hiện tại. Bạn có chắc muốn tiếp tục?', () => {
-        console.log('Import confirmed');
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = () => {
           try {
-            const text = e.target.result;
-            const lines = text.split('\n').map(line => {
+            const lines = reader.result.split('\n').map(line => {
               const values = [];
-              let current = '';
-              let inQuotes = false;
+              let current = '', inQuotes = false;
               for (let char of line) {
-                if (char === '"') { inQuotes = !inQuotes; }
+                if (char === '"') inQuotes = !inQuotes;
                 else if (char === ',' && !inQuotes) {
                   values.push(current.trim());
                   current = '';
-                } else { current += char; }
+                } else current += char;
               }
               values.push(current.trim());
               return values;
             });
-            if (lines.length < 1 || lines[0].length !== 5 || lines[0][0].toLowerCase() !== 'ngày' || lines[0][1].toLowerCase() !== 'loại' || lines[0][2].toLowerCase() !== 'mã vải') {
-              document.getElementById('output').textContent = 'File CSV không hợp lệ! Đảm bảo có cột: Ngày,Loại,Mã vải,Số cây,Số mét.';
-              return;
+            if (lines.length < 1 || lines[0].length !== 5 || lines[0][0].toLowerCase() !== 'ngày' || lines[0][1].toLowerCase() !== 'loại') {
+              return showOutput('File CSV không hợp lệ! Đảm bảo có cột: Ngày,Loại,Mã vải,Số cây,Số mét.');
             }
             const newTransactions = [];
             const newActiveInputs = [];
             inputIdCounter = 1;
-            // Kiểm tra dữ liệu trước
             for (let i = 1; i < lines.length; i++) {
               const [date, typeStr, code, trees, meters] = lines[i].map(v => v.replace(/^"|"$/g, '').trim());
-              if (!date && !typeStr && !code && !trees && !meters) continue; // Bỏ qua dòng trống
-              if (!/^\d{2}\/\d{2}\/\d{4}$/.test(date)) {
-                document.getElementById('output').textContent = `Lỗi dòng ${i + 1}: Ngày phải có định dạng DD/MM/YYYY`;
-                return;
-              }
-              if (!['nhập', 'xuất'].includes(typeStr.toLowerCase())) {
-                document.getElementById('output').textContent = `Lỗi dòng ${i + 1}: Loại phải là "nhập" hoặc "xuất"`;
-                return;
-              }
-              if (!/^\w{3}-\w{3}$/.test(code)) {
-                document.getElementById('output').textContent = `Lỗi dòng ${i + 1}: Mã vải không hợp lệ: ${code}`;
-                return;
-              }
-              const parsedTrees = parseInt(trees);
-              const parsedMeters = parseFloat(meters);
-              if (isNaN(parsedTrees) || parsedTrees < 0) {
-                document.getElementById('output').textContent = `Lỗi dòng ${i + 1}: Số cây không hợp lệ: ${trees}`;
-                return;
-              }
-              if (isNaN(parsedMeters) || parsedMeters < 0) {
-                document.getElementById('output').textContent = `Lỗi dòng ${i + 1}: Số mét không hợp lệ: ${meters}`;
-                return;
-              }
-              const metersStr = meters.toString();
-              const decimalPart = metersStr.split('.')[1];
-              if (decimalPart && decimalPart.length > 1) {
-                document.getElementById('output').textContent = `Lỗi dòng ${i + 1}: Số mét chỉ được có 1 chữ số thập phân`;
-                return;
-              }
+              if (!date && !typeStr && !code && !trees && !meters) continue;
+              if (!/^\d{2}\/\d{2}\/\d{4}$/.test(date)) return showOutput(`Lỗi dòng ${i + 1}: Ngày phải có định dạng DD/MM/YYYY`);
+              if (!['nhập', 'xuất'].includes(typeStr.toLowerCase())) return showOutput(`Lỗi dòng ${i + 1}: Loại phải là "nhập" hoặc "xuất"`);
+              if (!/^\w{3}-\w{3}$/.test(code)) return showOutput(`Lỗi dòng ${i + 1}: Mã vải không hợp lệ: ${code}`);
+              const parsedTrees = parseInt(trees), parsedMeters = parseFloat(meters);
+              if (isNaN(parsedTrees) || parsedTrees < 0) return showOutput(`Lỗi dòng ${i + 1}: Số cây không hợp lệ: ${trees}`);
+              if (isNaN(parsedMeters) || parsedMeters < 0) return showOutput(`Lỗi dòng ${i + 1}: Số mét không hợp lệ: ${meters}`);
+              const decimalPart = meters.toString().split('.')[1];
+              if (decimalPart && decimalPart.length > 1) return showOutput(`Lỗi dòng ${i + 1}: Số mét chỉ được có 1 chữ số thập phân`);
             }
-            // Xử lý giao dịch
-            const sortedLines = lines.slice(1).filter(line => line[0] && line[1] && line[2] && line[3] && line[4])
+            const sortedLines = lines.slice(1)
+              .filter(line => line[0] && line[1] && line[2] && line[3] && line[4])
               .map(line => ({
                 date: line[0].replace(/^"|"$/g, ''),
                 typeStr: line[1].replace(/^"|"$/g, '').toLowerCase(),
@@ -1040,60 +747,25 @@
             for (let i = 0; i < sortedLines.length; i++) {
               const { date, typeStr, code, trees, meters } = sortedLines[i];
               const type = typeStr === 'nhập' ? 'n' : 'x';
-              const displayType = typeStr;
               const formattedMeters = parseFloat(meters.toFixed(1));
               recalculateInventory();
-              let stockTrees = (inventory[code]?.trees || 0);
-              let stockMeters = (inventory[code]?.meters || 0);
+              let stockTrees = (inventory[code]?.trees || 0), stockMeters = (inventory[code]?.meters || 0);
               if (type === 'n') {
                 if (trees > 0 || formattedMeters > 0) {
-                  newActiveInputs.push({
-                    id: inputIdCounter++,
-                    date,
-                    code,
-                    trees,
-                    meters: formattedMeters
-                  });
+                  newActiveInputs.push({ id: inputIdCounter++, date, code, trees, meters: formattedMeters });
                 }
                 stockTrees += trees;
                 stockMeters += formattedMeters;
-              } else if (type === 'x') {
-                if (trees === 0 && formattedMeters === 0) {
-                } else {
-                  if (stockTrees < trees || stockMeters < formattedMeters) {
-                    document.getElementById('output').textContent = `Lỗi dòng ${i + 2}: Không đủ tồn kho mã ${code}. Tồn kho hiện tại: ${stockTrees} cây, ${stockMeters.toFixed(1)} mét.`;
-                    return;
-                  }
-                  let remainingTrees = trees;
-                  let remainingMeters = formattedMeters;
-                  const matchingInputs = newActiveInputs.filter(t => t.code === code && t.trees > 0).sort((a, b) => parseDate(a.date) - parseDate(b.date));
-                  let valid = false;
-                  for (let input of matchingInputs) {
-                    if (remainingTrees <= 0 || remainingMeters <= 0) break;
-                    const inputIndex = newActiveInputs.findIndex(t => t.id === input.id);
-                    const metersPerTree = input.meters / input.trees;
-                    if (metersPerTree === formattedMeters / trees) {
-                      const treesToDeduct = Math.min(remainingTrees, input.trees);
-                      const metersToDeduct = treesToDeduct * metersPerTree;
-                      newActiveInputs[inputIndex].trees -= treesToDeduct;
-                      newActiveInputs[inputIndex].meters -= metersToDeduct;
-                      remainingTrees -= treesToDeduct;
-                      remainingMeters -= metersToDeduct;
-                      valid = true;
-                    }
-                  }
-                  if (!valid || remainingTrees > 0 || remainingMeters > 0) {
-                    document.getElementById('output').textContent = `Lỗi dòng ${i + 2}: Không tìm thấy giao dịch nhập phù hợp cho ${trees} cây, ${formattedMeters.toFixed(1)} mét mã ${code}.`;
-                    return;
-                  }
-                  stockTrees -= trees;
-                  stockMeters -= formattedMeters;
-                }
+              } else if (!processOutputTransaction(code, trees, formattedMeters, date, stockTrees, stockMeters)) {
+                return showOutput(`Lỗi dòng ${i + 2}: Không đủ tồn kho hoặc giao dịch nhập không phù hợp cho mã ${code}.`);
+              } else {
+                stockTrees -= trees;
+                stockMeters -= formattedMeters;
               }
               newTransactions.push({
                 date,
                 type,
-                displayType,
+                displayType: typeStr,
                 code,
                 trees,
                 meters: formattedMeters,
@@ -1101,10 +773,7 @@
                 stockMeters
               });
             }
-            if (newTransactions.length === 0) {
-              document.getElementById('output').textContent = 'File CSV không chứa dữ liệu hợp lệ!';
-              return;
-            }
+            if (newTransactions.length === 0) return showOutput('File CSV không chứa dữ liệu hợp lệ!');
             transactions = newTransactions;
             activeInputs = newActiveInputs.filter(t => t.trees > 0);
             recalculateInventory();
@@ -1113,24 +782,20 @@
             console.log('Imported transactions:', transactions);
             console.log('Imported activeInputs:', activeInputs);
             console.log('Updated inventory:', inventory);
-            document.getElementById('output').textContent = 'Đã import dữ liệu thành công!';
+            showOutput('Đã import dữ liệu thành công!');
             fileInput.value = '';
           } catch (error) {
             console.error('Lỗi đọc file CSV:', error);
-            document.getElementById('output').textContent = 'Lỗi đọc file CSV!';
+            showOutput('Lỗi đọc file CSV!');
           }
         };
-        reader.onerror = function() {
-          document.getElementById('output').textContent = 'Lỗi đọc file CSV!';
-        };
+        reader.onerror = () => showOutput('Lỗi đọc file CSV!');
         reader.readAsText(file);
       });
-    }
+    };
 
-    function showExportDataConfirmation() {
-      console.log('showExportDataConfirmation called');
+    const showExportDataConfirmation = () => {
       showConfirmation('Xác nhận xuất dữ liệu giao dịch?', () => {
-        console.log('Export data confirmed');
         const headers = ['Ngày', 'Loại', 'Mã vải', 'Số cây', 'Số mét', 'Tồn kho (cây)', 'Tồn kho (mét)'];
         const rows = transactions.map(t => [
           `"${t.date}"`,
@@ -1141,27 +806,13 @@
           t.stockTrees,
           t.stockMeters.toFixed(1)
         ]);
-        const csvContent = [
-          headers.join(','),
-          ...rows.map(row => row.join(','))
-        ].join('\n');
-        const BOM = '\uFEFF';
-        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        const date = new Date().toISOString().split('T')[0].replace(/-/g, '');
-        a.href = url;
-        a.download = `tonkho_lichsu_${date}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-        document.getElementById('output').textContent = 'Đã xuất dữ liệu giao dịch!';
+        exportCSV(`tonkho_lichsu_${new Date().toISOString().split('T')[0].replace(/-/g, '')}.csv`, headers, rows);
+        showOutput('Đã xuất dữ liệu giao dịch!');
       });
-    }
+    };
 
-    function showClearAllConfirmation() {
-      console.log('showClearAllConfirmation called');
+    const showClearAllConfirmation = () => {
       showConfirmation('Xóa toàn bộ dữ liệu? Hành động này không thể hoàn tác.', () => {
-        console.log('Clear all confirmed');
         inventory = {};
         transactions = [];
         activeInputs = [];
@@ -1169,11 +820,10 @@
         currentPage = 1;
         saveData();
         updateUI();
-        document.getElementById('output').textContent = 'Đã xóa toàn bộ dữ liệu!';
+        showOutput('Đã xóa toàn bộ dữ liệu!');
       });
-    }
+    };
 
-    // Gắn sự kiện cho các nút
     document.getElementById('processFormButton').addEventListener('click', processFormCommand);
     document.getElementById('applyInventoryFilterButton').addEventListener('click', applyInventoryFilter);
     document.getElementById('applyFilterButton').addEventListener('click', applyFilter);
@@ -1184,9 +834,7 @@
     document.getElementById('importTransactionsButton').addEventListener('click', showImportConfirmation);
     document.getElementById('exportDataButton').addEventListener('click', showExportDataConfirmation);
     document.getElementById('clearAllButton').addEventListener('click', showClearAllConfirmation);
-    document.getElementById('saveEditButton').addEventListener('click', saveEditTransaction);
 
-    // Tải dữ liệu khi khởi động
     loadData();
   </script>
 </body>
