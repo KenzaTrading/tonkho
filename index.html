@@ -244,6 +244,17 @@
         return formatted;
       }
 
+      cleanZeroLines() {
+        this.inventory = this.inventory.filter(line => {
+          if (line.trees === 0 && line.meters === 0) {
+            const otherLines = this.inventory.filter(l => l.code === line.code && (l.trees > 0 || l.meters > 0));
+            return otherLines.length === 0; // Giữ nếu không có dòng nào khác > 0
+          }
+          return true; // Giữ tất cả dòng không bằng 0
+        });
+        console.log('Cleaned zero lines, current inventory:', this.inventory);
+      }
+
       addTransaction(type, code, trees, meters, date) {
         console.log('Adding transaction:', { type, code, trees, meters, date });
         const formattedCode = code.slice(0, 3) + '-' + code.slice(3);
@@ -286,6 +297,8 @@
             return { success: false, error: `Không thể xuất mã ${formattedCode} với số cây/mét yêu cầu.` };
           }
         }
+
+        this.cleanZeroLines(); // Xóa các dòng 0 nếu có dòng > 0
 
         const stockLines = this.inventory.filter(line => line.code === formattedCode);
         const stockTrees = stockLines.reduce((sum, line) => sum + line.trees, 0);
@@ -339,6 +352,7 @@
             (!this.filterInventory.color || color === this.filterInventory.color)
           );
         });
+        filtered.sort((a, b) => a.code.localeCompare(b.code)); // Sắp xếp theo mã vải
         console.log('Filtered inventory:', filtered);
         return filtered;
       }
@@ -380,6 +394,7 @@
           if (this.transactions.length > 0) {
             this.latestCode = this.transactions[this.transactions.length - 1].code;
           }
+          this.cleanZeroLines(); // Áp dụng logic xóa khi tải dữ liệu
           console.log('Loaded data:', { inventory: this.inventory, transactions: this.transactions });
         } catch (error) {
           console.error('Lỗi tải dữ liệu:', error);
