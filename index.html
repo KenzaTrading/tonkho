@@ -112,9 +112,8 @@
                 <label for="filterEndDate" class="form-label">Đến ngày:</label>
                 <input type="date" class="form-control" id="filterEndDate">
               </div>
-              <div class="col-md-3 col-12 d-flex align-items-end gap-2">
+              <div class="col-md-3 col-12 d-flex align-items-end">
                 <button class="btn btn-primary" id="applyFilterButton">Thực hiện</button>
-                <button class="btn btn-secondary" id="clearFilterButton">Xóa bộ lọc</button>
               </div>
             </div>
           </div>
@@ -387,15 +386,6 @@
       updateUI();
     };
 
-    const clearFilter = () => {
-      document.getElementById('filterCode').value = '';
-      document.getElementById('filterStartDate').value = '';
-      document.getElementById('filterEndDate').value = '';
-      inventoryManager.currentFilter = { code: '', startDate: '', endDate: '' };
-      inventoryManager.currentPage = 1;
-      updateUI();
-    };
-
     const prevPage = () => {
       if (inventoryManager.currentPage > 1) {
         inventoryManager.currentPage--;
@@ -416,7 +406,6 @@
     document.getElementById('input-tab').addEventListener('shown.bs.tab', () => document.getElementById('formCode').focus());
     document.getElementById('processFormButton').addEventListener('click', processFormCommand);
     document.getElementById('applyFilterButton').addEventListener('click', applyFilter);
-    document.getElementById('clearFilterButton').addEventListener('click', clearFilter);
     document.getElementById('prevPageButton').addEventListener('click', prevPage);
     document.getElementById('nextPageButton').addEventListener('click', nextPage);
     inventoryManager.loadData();
