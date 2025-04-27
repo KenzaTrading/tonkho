@@ -199,7 +199,7 @@
         this.filterInventory = { fabricType: '', color: '' };
         this.currentPage = 1;
         this.itemsPerPage = 10;
-        this.latestInventoryLine = null;
+        this.latestCode = null;
       }
 
       validateTransaction(code, trees, meters) {
@@ -254,7 +254,6 @@
         if (type === 'n') {
           const newLine = { code: formattedCode, trees, meters: formattedMeters, date: formattedDate };
           this.inventory.push(newLine);
-          this.latestInventoryLine = newLine;
         } else {
           let remainingTrees = trees;
           let remainingMeters = formattedMeters;
@@ -281,11 +280,6 @@
               remainingTrees -= treesToTake;
               remainingMeters -= metersToTake;
             }
-
-            if (line.trees === 0 && line.meters === 0) {
-              const index = this.inventory.indexOf(line);
-              this.inventory.splice(index, 1);
-            }
           }
 
           if (remainingTrees > 0 || remainingMeters > 0) {
@@ -293,7 +287,7 @@
           }
         }
 
-        const stockLines = this.inventory.filter(line => line.code === formattedCode && line.trees > 0);
+        const stockLines = this.inventory.filter(line => line.code === formattedCode);
         const stockTrees = stockLines.reduce((sum, line) => sum + line.trees, 0);
         const stockMeters = stockLines.reduce((sum, line) => sum + line.meters, 0);
 
@@ -309,9 +303,11 @@
         };
 
         this.transactions.push(transaction);
+        this.latestCode = formattedCode;
         console.log('Added transaction:', transaction);
         console.log('Current inventory:', this.inventory);
         console.log('Current transactions:', this.transactions);
+        console.log('Latest code:', this.latestCode);
         return { success: true, transaction, formattedCode };
       }
 
@@ -381,6 +377,9 @@
               if (!valid) console.warn('Invalid transaction filtered out during load:', t);
               return valid;
             });
+          if (this.transactions.length > 0) {
+            this.latestCode = this.transactions[this.transactions.length - 1].code;
+          }
           console.log('Loaded data:', { inventory: this.inventory, transactions: this.transactions });
         } catch (error) {
           console.error('Lỗi tải dữ liệu:', error);
@@ -422,17 +421,19 @@
         showOutput('Lỗi hiển thị cập nhật mới nhất!');
         return;
       }
-      console.log('Updating latest inventory:', { latestLine: inventoryManager.latestInventoryLine });
-      if (!inventoryManager.latestInventoryLine) {
+      console.log('Updating latest inventory:', { latestCode: inventoryManager.latestCode });
+      if (!inventoryManager.latestCode) {
         latestInventoryBody.innerHTML = '<tr><td colspan="3" class="text-center">Chưa có giao dịch</td></tr>';
         return;
       }
-      const { code, trees = 0, meters = 0 } = inventoryManager.latestInventoryLine;
+      const stockLines = inventoryManager.inventory.filter(line => line.code === inventoryManager.latestCode);
+      const totalTrees = stockLines.reduce((sum, line) => sum + line.trees, 0);
+      const totalMeters = stockLines.reduce((sum, line) => sum + line.meters, 0);
       latestInventoryBody.innerHTML = `
         <tr>
-          <td>${code}</td>
-          <td>${trees}</td>
-          <td>${meters.toFixed(1)} m</td>
+          <td>${inventoryManager.latestCode}</td>
+          <td>${totalTrees}</td>
+          <td>${totalMeters.toFixed(1)} m</td>
         </tr>`;
     };
 
