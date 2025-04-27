@@ -85,7 +85,7 @@
               </div>
               <div class="col-md-2 col-12">
                 <label for="formMeters" class="form-label">Số mét:</label>
-                <input type="number" step="0.1" class="form-control" id="formMeters" placeholder="VD: 0.0">
+                <input type="number" step="0.1" class="form-control" id="formMeters" value="0.0" placeholder="VD: 100.5">
               </div>
               <div class="col-md-2 col-12">
                 <label for="formDate" class="form-label">Ngày:</label>
@@ -139,6 +139,7 @@
                 <th>Mã vải</th>
                 <th>Số cây</th>
                 <th>Số mét</th>
+                <th>Hành động</th>
               </tr>
             </thead>
             <tbody id="inventory"></tbody>
@@ -266,7 +267,7 @@
           </div>
           <div class="mb-3">
             <label for="editMeters" class="form-label">Số mét:</label>
-            <input type="number" step="0.1" class="form-control" id="editMeters">
+            <input type="number" step="0.1" class="form-control" id="editMeters" value="0.0">
           </div>
           <div class="mb-3">
             <label for="editDate" class="form-label">Ngày:</label>
@@ -343,6 +344,16 @@
       });
     }
 
+    // Hàm điền form lệnh Xuất từ Tab Tồn kho
+    function fillExportForm(code, trees, meters) {
+      const inputTab = new bootstrap.Tab(document.getElementById('input-tab'));
+      inputTab.show();
+      document.getElementById('formType').value = 'x';
+      document.getElementById('formCode').value = code.replace('-', '');
+      document.getElementById('formTrees').value = trees;
+      document.getElementById('formMeters').value = meters.toFixed(1);
+    }
+
     // Cập nhật giao diện
     function updateUI() {
       // Cập nhật 5 mã gần nhất
@@ -387,12 +398,20 @@
         if (t && t.code && t.trees !== undefined && t.meters !== undefined) {
           totalTrees += t.type === 'n' ? t.trees : -t.trees;
           totalMeters += t.type === 'n' ? t.meters : -t.meters;
-          const row = `<tr><td>${t.code}</td><td>${t.trees}</td><td>${t.meters.toFixed(1)} m</td></tr>`;
+          const row = `
+            <tr>
+              <td>${t.code}</td>
+              <td>${t.trees}</td>
+              <td>${t.meters.toFixed(1)} m</td>
+              <td>
+                <button class="btn btn-sm btn-primary action-btn" onclick="fillExportForm('${t.code}', ${t.trees}, ${t.meters})">Xuất</button>
+              </td>
+            </tr>`;
           inventoryBody.innerHTML += row;
         }
       });
       if (pageInventory.length > 0) {
-        inventoryTotal.innerHTML = `<tr class="total-row"><td>Tổng</td><td>${totalTrees}</td><td>${totalMeters.toFixed(1)} m</td></tr>`;
+        inventoryTotal.innerHTML = `<tr class="total-row"><td>Tổng</td><td>${totalTrees}</td><td>${totalMeters.toFixed(1)} m</td><td></td></tr>`;
       }
       document.getElementById('inventoryPageInfo').textContent = `Trang ${inventoryPage}/${totalInventoryPages || 1}`;
       document.getElementById('prevInventoryPage').disabled = inventoryPage === 1;
@@ -527,7 +546,7 @@
       
       document.getElementById('formCode').value = '';
       document.getElementById('formTrees').value = '0';
-      document.getElementById('formMeters').value = '';
+      document.getElementById('formMeters').value = '0.0';
     }
 
     // Xác nhận lệnh nhập liệu
