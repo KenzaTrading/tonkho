@@ -203,7 +203,7 @@
   <script>
     class InventoryManager {
       constructor() {
-        this.inventory = []; // [{ code, trees, meters, date }, ...]
+        this.inventory = [];
         this.transactions = [];
         this.today = new Date().toISOString().split('T')[0];
         this.currentFilter = { code: '', startDate: '', endDate: '' };
@@ -211,7 +211,7 @@
         this.currentPage = 1;
         this.itemsPerPage = 10;
         this.latestCode = null;
-        this.editingIndex = null; // Theo dõi giao dịch đang sửa
+        this.editingIndex = null;
       }
 
       validateTransaction(code, trees, meters) {
@@ -267,17 +267,20 @@
         console.log('Cleaned zero lines, current inventory:', this.inventory);
       }
 
+      sortTransactions() {
+        this.transactions.sort((a, b) => this.parseDate(b.date) - this.parseDate(a.date));
+        console.log('Sorted transactions:', this.transactions);
+      }
+
       rebuildInventory() {
         const transactions = [...this.transactions];
         this.inventory = [];
         this.transactions = [];
-        transactions.sort((a, b) => this.parseDate(a.date) - this.parseDate(b.date)); // Sắp xếp theo ngày tăng dần để rebuild
+        transactions.sort((a, b) => this.parseDate(a.date) - this.parseDate(b.date)); // Sắp xếp tăng dần để rebuild
         for (const t of transactions) {
-          const result = this.addTransaction(t.type, t.code.replace('-', ''), t.trees, t.meters, t.date);
-          if (!result.success) {
-            console.error('Error rebuilding inventory for transaction:', t, result.error);
-          }
+          this.addTransaction(t.type, t.code.replace('-', ''), t.trees, t.meters, t.date, true);
         }
+        this.sortTransactions(); // Sắp xếp lại giảm dần sau khi rebuild
         console.log('Rebuilt inventory:', this.inventory);
       }
 
@@ -295,7 +298,7 @@
           let remainingTrees = trees;
           let remainingMeters = formattedMeters;
           const stockLines = this.inventory.filter(line => line.code === formattedCode && line.trees > 0);
-          stockLines.sort((a, b) => this.parseDate(a.date) - this.parseDate(b.date)); // FIFO
+          stockLines.sort((a, b) => this.parseDate(a.date) - this.parseDate(b.date));
 
           let totalStockTrees = stockLines.reduce((sum, line) => sum + line.trees, 0);
           let totalStockMeters = stockLines.reduce((sum, line) => sum + line.meters, 0);
@@ -344,6 +347,7 @@
         };
 
         this.transactions.push(transaction);
+        this.sortTransactions(); // Sắp xếp ngay sau khi thêm
         this.latestCode = formattedCode;
         console.log('Added transaction:', transaction);
         console.log('Current inventory:', this.inventory);
@@ -359,14 +363,11 @@
           return { success: false, error: 'Giao dịch không tồn tại!' };
         }
 
-        // Xóa giao dịch cũ và rebuild inventory
         this.transactions.splice(index, 1);
         this.rebuildInventory();
 
-        // Thêm giao dịch mới
         const result = this.addTransaction(type, code, trees, meters, date);
         if (!result.success) {
-          // Khôi phục giao dịch cũ nếu thất bại
           this.transactions.splice(index, 0, oldTransaction);
           this.rebuildInventory();
           return result;
@@ -402,7 +403,7 @@
             (!endDate || date <= endDate)
           );
         });
-        filtered.sort((a, b) => this.parseDate(b.date) - this.parseDate(a.date)); // Sắp xếp mới nhất trước
+        // Đã sắp xếp trong this.transactions, không cần sắp xếp lại
         console.log('Filtered transactions:', filtered);
         return filtered;
       }
@@ -455,8 +456,9 @@
               if (!valid) console.warn('Invalid transaction filtered out during load:', t);
               return valid;
             });
+          this.sortTransactions(); // Sắp xếp khi tải dữ liệu
           if (this.transactions.length > 0) {
-            this.latestCode = this.transactions[this.transactions.length - 1].code;
+            this.latestCode = this.transactions[0].code; // Lấy mã mới nhất
           }
           this.cleanZeroLines();
           console.log('Loaded data:', { inventory: this.inventory, transactions: this.transactions });
@@ -709,7 +711,7 @@
       formCode.value = transaction.code.replace('-', '');
       formTrees.value = transaction.trees;
       formMeters.value = transaction.meters.toFixed(1);
-      formDate.value = transaction.date.split('/').reverse().join('-'); // Chuyển DD/MM/YYYY sang YYYY-MM-DD
+      formDate.value = transaction.date.split('/').reverse().join('-');
 
       const tab = new bootstrap.Tab(inputTab);
       tab.show();
