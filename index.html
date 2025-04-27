@@ -446,7 +446,7 @@
               const data = new Uint8Array(e.target.result);
               const workbook = XLSX.read(data, { type: 'array' });
               const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-              const json = XLSX.utils.sheet_to_json(worksheet, { header: ['Ngày', 'Loại', 'Mã vải', 'Số cây', 'Số mét'], skipHeader: true });
+              const json = XLSX.utils.sheet_to_json(worksheet, { header: ['Ngày', 'Loại', 'Mã vải', 'Số cây', 'Số mét'], defval: '' });
 
               console.log('Parsed Excel data:', json);
 
@@ -455,22 +455,33 @@
                 return;
               }
 
+              const expectedHeader = ['Ngày', 'Loại', 'Mã vải', 'Số cây', 'Số mét'];
+              const firstRow = json[0];
+              const isHeader = expectedHeader.every((col, i) => firstRow[col] === col);
+              const dataRows = isHeader ? json.slice(1) : json;
+
+              if (dataRows.length === 0) {
+                resolve({ success: false, error: 'File không chứa dữ liệu hợp lệ!' });
+                return;
+              }
+
               const errors = [];
-              for (const row of json) {
+              for (let i = 0; i < dataRows.length; i++) {
+                const row = dataRows[i];
                 const { 'Ngày': date, 'Loại': type, 'Mã vải': code, 'Số cây': trees, 'Số mét': meters } = row;
                 if (!date || type !== 'Nhập' || !code || isNaN(trees) || isNaN(meters)) {
-                  errors.push(`Dòng dữ liệu không hợp lệ: ${JSON.stringify(row)}`);
+                  errors.push(`Dòng ${i + (isHeader ? 2 : 1)} không hợp lệ: ${JSON.stringify(row)}`);
                   continue;
                 }
                 const cleanCode = code.replace('-', '');
                 const error = this.validateTransaction(cleanCode, parseInt(trees), parseFloat(meters));
                 if (error) {
-                  errors.push(`Lỗi dữ liệu mã ${code}: ${error}`);
+                  errors.push(`Lỗi tại dòng ${i + (isHeader ? 2 : 1)}, mã ${code}: ${error}`);
                   continue;
                 }
                 const result = this.addTransaction('n', cleanCode, parseInt(trees), parseFloat(meters), date);
                 if (!result.success) {
-                  errors.push(`Lỗi thêm giao dịch mã ${code}: ${result.error}`);
+                  errors.push(`Lỗi thêm giao dịch tại dòng ${i + (isHeader ? 2 : 1)}, mã ${code}: ${result.error}`);
                 }
               }
 
@@ -753,7 +764,7 @@
 
       const message = inventoryManager.editingIndex !== null
         ? `Xác nhận cập nhật giao dịch mã ${formattedCode} với ${type === 'n' ? 'nhập' : 'xuất'} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}?`
-        : `Xác nhận ${type === 'n' ? 'nhập' : 'xuất'} mã ${formattedCode} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}?`;
+        : `Xác nhận ${type === 'n' ? 'nhập' : 'xuất'} mã ${formattedCode} ${trees} cây, ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}?`;
 
       showConfirmation(message, () => {
         console.log('Confirmed transaction');
