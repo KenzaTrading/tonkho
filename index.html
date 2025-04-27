@@ -466,12 +466,15 @@
 
     // Xử lý lệnh từ form
     function processFormCommand() {
+      console.log('processFormCommand called');
       const type = document.getElementById('formType').value;
       const code = document.getElementById('formCode').value.trim().toUpperCase();
       const trees = parseInt(document.getElementById('formTrees').value);
       const meters = parseFloat(document.getElementById('formMeters').value);
       const date = document.getElementById('formDate').value || today;
       
+      console.log('Input:', { type, code, trees, meters, date });
+
       if (!code || code.length !== 6) {
         document.getElementById('output').textContent = 'Mã vải phải có đúng 6 ký tự!';
         return;
@@ -510,27 +513,47 @@
       const displayType = type === 'n' ? 'nhập' : 'xuất';
       pendingCommand = { date: formattedDate, type, displayType, code: formattedCode, trees, meters: formattedMeters, stockTrees, stockMeters };
       
-      showConfirmation(`Xác nhận ${displayType} mã ${formattedCode} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}? Tồn kho sẽ là ${stockTrees} cây, ${stockMeters.toFixed(1)} mét.`);
+      console.log('Pending Command:', pendingCommand);
+      showConfirmation(`Xác nhận ${displayType} mã ${formattedCode} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}? Tồn kho sẽ là ${stockTrees} cây, ${stockMeters.toFixed(1)} mét.`, confirmFormCommand);
       
       document.getElementById('formCode').value = '';
       document.getElementById('formTrees').value = '1';
       document.getElementById('formMeters').value = '';
     }
 
+    // Xác nhận lệnh nhập liệu
+    function confirmFormCommand() {
+      console.log('confirmFormCommand called', pendingCommand);
+      if (pendingCommand) {
+        inventory[pendingCommand.code] = { trees: pendingCommand.stockTrees, meters: pendingCommand.stockMeters };
+        transactions.push(pendingCommand);
+        saveData();
+        updateUI();
+        document.getElementById('output').textContent = 'Đã cập nhật thành công!';
+        pendingCommand = null;
+      } else {
+        document.getElementById('output').textContent = 'Lỗi: Không có lệnh để xác nhận!';
+      }
+    }
+
     // Hiển thị popup xác nhận
     function showConfirmation(message, callback) {
+      console.log('showConfirmation called:', message);
       document.getElementById('confirmationMessage').textContent = message;
       const modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
       modal.show();
 
-      // Xử lý nút xác nhận
       const confirmButton = document.getElementById('confirmButton');
+      // Xóa các sự kiện cũ để tránh trùng lặp
+      confirmButton.replaceWith(confirmButton.cloneNode(true));
+      const newConfirmButton = document.getElementById('confirmButton');
+
       const handler = function() {
+        console.log('Confirm button clicked');
         if (callback) callback();
         modal.hide();
-        confirmButton.removeEventListener('click', handler);
       };
-      confirmButton.addEventListener('click', handler);
+      newConfirmButton.addEventListener('click', handler, { once: true });
     }
 
     // Xóa giao dịch
