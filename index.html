@@ -287,6 +287,8 @@
     // Dữ liệu kho
     let inventory = {};
     let transactions = [];
+    let activeInputs = [];
+    let inputIdCounter = 1;
     let pendingCommand = null;
     let editingIndex = null;
     let currentFilter = { code: '', startDate: '', endDate: '' };
@@ -309,6 +311,8 @@
       try {
         localStorage.setItem('inventory', JSON.stringify(inventory));
         localStorage.setItem('transactions', JSON.stringify(transactions));
+        localStorage.setItem('activeInputs', JSON.stringify(activeInputs));
+        localStorage.setItem('inputIdCounter', inputIdCounter);
       } catch (error) {
         console.error('Lỗi lưu localStorage:', error);
         document.getElementById('output').textContent = 'Lỗi lưu dữ liệu!';
@@ -320,6 +324,8 @@
       try {
         inventory = JSON.parse(localStorage.getItem('inventory') || '{}');
         transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+        activeInputs = JSON.parse(localStorage.getItem('activeInputs') || '[]');
+        inputIdCounter = parseInt(localStorage.getItem('inputIdCounter') || '1');
         updateUI();
       } catch (error) {
         console.error('Lỗi tải localStorage:', error);
@@ -327,19 +333,14 @@
       }
     }
 
-    // Hàm tính toán lại tồn kho từ lịch sử giao dịch
+    // Hàm tính toán lại inventory từ activeInputs
     function recalculateInventory() {
       inventory = {};
-      transactions.forEach(t => {
-        if (t && t.type && t.code && t.trees !== undefined && t.meters !== undefined) {
+      activeInputs.forEach(t => {
+        if (t && t.code && t.trees > 0 && t.meters >= 0) {
           inventory[t.code] = inventory[t.code] || { trees: 0, meters: 0 };
-          if (t.type === 'n') {
-            inventory[t.code].trees += t.trees;
-            inventory[t.code].meters += t.meters;
-          } else if (t.type === 'x') {
-            inventory[t.code].trees -= t.trees;
-            inventory[t.code].meters -= t.meters;
-          }
+          inventory[t.code].trees += t.trees;
+          inventory[t.code].meters += t.meters;
         }
       });
     }
@@ -359,45 +360,43 @@
       // Cập nhật 5 mã gần nhất
       const recentInventoryBody = document.getElementById('recent-inventory');
       recentInventoryBody.innerHTML = '';
-      const sortedTransactions = [...transactions].sort((a, b) => {
+      const sortedInputs = [...activeInputs].sort((a, b) => {
         const dateA = new Date(a.date.split('/').reverse().join('-'));
         const dateB = new Date(b.date.split('/').reverse().join('-'));
         return dateB - dateA;
       });
-      const recentCodes = [...new Set(sortedTransactions.map(t => t.code))]
-        .slice(0, 5)
-        .filter(code => inventory[code]);
+      const recentCodes = [...new Set(sortedInputs.map(t => t.code))].slice(0, 5);
       recentCodes.forEach(code => {
-        const data = inventory[code];
-        const row = `<tr><td>${code}</td><td>${data.trees}</td><td>${data.meters.toFixed(1)} m</td></tr>`;
-        recentInventoryBody.innerHTML += row;
+        sortedInputs.filter(t => t.code === code && t.trees > 0).forEach(t => {
+          recentInventoryBody.innerHTML += `<tr><td>${t.code}</td><td>${t.trees}</td><td>${t.meters.toFixed(1)} m</td></tr>`;
+        });
       });
 
-      // Cập nhật tồn kho (danh sách giao dịch)
+      // Cập nhật tồn kho (liệt kê giao dịch nhập còn tồn)
       const inventoryBody = document.getElementById('inventory');
       const inventoryTotal = document.getElementById('inventory-total');
       inventoryBody.innerHTML = '';
       inventoryTotal.innerHTML = '';
       const fabricType = document.getElementById('searchFabricType').value;
       const color = document.getElementById('searchColor').value;
-      const filteredInventory = transactions.filter(t => {
-        if (!t || !t.code || !['n', 'x'].includes(t.type)) return false;
+      const filteredInputs = activeInputs.filter(t => {
+        if (!t || !t.code || t.trees <= 0) return false;
         return (
           (!fabricType || t.code.startsWith(fabricType + '-')) &&
           (!color || t.code.endsWith('-' + color))
         );
       });
-      const totalInventoryPages = Math.ceil(filteredInventory.length / inventoryItemsPerPage);
+      const totalInventoryPages = Math.ceil(filteredInputs.length / inventoryItemsPerPage);
       inventoryPage = Math.min(inventoryPage, totalInventoryPages || 1);
       const startInventory = (inventoryPage - 1) * inventoryItemsPerPage;
       const endInventory = startInventory + inventoryItemsPerPage;
-      const pageInventory = filteredInventory.slice(startInventory, endInventory);
+      const pageInventory = filteredInputs.slice(startInventory, endInventory);
       let totalTrees = 0;
       let totalMeters = 0;
       pageInventory.forEach(t => {
-        if (t && t.code && t.trees !== undefined && t.meters !== undefined) {
-          totalTrees += t.type === 'n' ? t.trees : -t.trees;
-          totalMeters += t.type === 'n' ? t.meters : -t.meters;
+        if (t && t.code && t.trees > 0 && t.meters >= 0) {
+          totalTrees += t.trees;
+          totalMeters += t.meters;
           const row = `
             <tr>
               <td>${t.code}</td>
@@ -421,8 +420,8 @@
       const fabricTypeSelect = document.getElementById('searchFabricType');
       const colorSelect = document.getElementById('searchColor');
       const filterSelect = document.getElementById('filterCode');
-      const fabricTypes = [...new Set(transactions.map(t => t.code.split('-')[0]))].sort();
-      const colors = [...new Set(transactions.map(t => t.code.split('-')[1]))].sort();
+      const fabricTypes = [...new Set(activeInputs.map(t => t.code.split('-')[0]))].sort();
+      const colors = [...new Set(activeInputs.map(t => t.code.split('-')[1]))].sort();
       const existingCodes = [...new Set(transactions.map(t => t.code))].sort();
       
       fabricTypeSelect.innerHTML = '<option value="">Tất cả loại vải</option>';
@@ -529,38 +528,77 @@
       if (type === 'n') {
         stockTrees += trees;
         stockMeters += formattedMeters;
+        pendingCommand = { date: formattedDate, type, displayType: 'nhập', code: formattedCode, trees, meters: formattedMeters, stockTrees, stockMeters };
+        showConfirmation(`Xác nhận nhập mã ${formattedCode} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}? Tồn kho sẽ là ${stockTrees} cây, ${stockMeters.toFixed(1)} mét.`, function() {
+          // Thêm vào activeInputs
+          activeInputs.push({
+            id: inputIdCounter++,
+            date: formattedDate,
+            code: formattedCode,
+            trees,
+            meters: formattedMeters
+          });
+          inventory[formattedCode] = { trees: stockTrees, meters: stockMeters };
+          transactions.push(pendingCommand);
+          saveData();
+          updateUI();
+          document.getElementById('output').textContent = 'Đã cập nhật thành công!';
+          pendingCommand = null;
+          document.getElementById('formCode').value = '';
+          document.getElementById('formTrees').value = '0';
+          document.getElementById('formMeters').value = '0.0';
+        });
       } else if (type === 'x') {
         if ((inventory[formattedCode]?.trees || 0) < trees || (inventory[formattedCode]?.meters || 0) < formattedMeters) {
           document.getElementById('output').textContent = `Lỗi: Không đủ tồn kho mã ${formattedCode}. Tồn kho hiện tại: ${inventory[formattedCode]?.trees || 0} cây, ${(inventory[formattedCode]?.meters || 0).toFixed(1)} mét.`;
           return;
         }
+        // Tìm giao dịch nhập để trừ (FIFO)
+        let remainingTrees = trees;
+        let remainingMeters = formattedMeters;
+        const matchingInputs = activeInputs.filter(t => t.code === formattedCode && t.trees > 0).sort((a, b) => {
+          const dateA = new Date(a.date.split('/').reverse().join('-'));
+          const dateB = new Date(b.date.split('/').reverse().join('-'));
+          return dateA - dateB;
+        });
+        const updatedInputs = [...activeInputs];
+        let valid = false;
+        for (let input of matchingInputs) {
+          if (remainingTrees <= 0 || remainingMeters <= 0) break;
+          const inputIndex = updatedInputs.findIndex(t => t.id === input.id);
+          const metersPerTree = input.meters / input.trees;
+          if (metersPerTree === formattedMeters / trees) {
+            // Số mét trên mỗi cây khớp
+            const treesToDeduct = Math.min(remainingTrees, input.trees);
+            const metersToDeduct = treesToDeduct * metersPerTree;
+            updatedInputs[inputIndex].trees -= treesToDeduct;
+            updatedInputs[inputIndex].meters -= metersToDeduct;
+            remainingTrees -= treesToDeduct;
+            remainingMeters -= metersToDeduct;
+            valid = true;
+          }
+        }
+        if (!valid || remainingTrees > 0 || remainingMeters > 0) {
+          document.getElementById('output').textContent = `Lỗi: Không tìm thấy giao dịch nhập phù hợp cho ${trees} cây, ${formattedMeters.toFixed(1)} mét mã ${formattedCode}.`;
+          return;
+        }
         stockTrees -= trees;
         stockMeters -= formattedMeters;
-      }
-
-      const displayType = type === 'n' ? 'nhập' : 'xuất';
-      pendingCommand = { date: formattedDate, type, displayType, code: formattedCode, trees, meters: formattedMeters, stockTrees, stockMeters };
-      
-      console.log('Pending Command:', pendingCommand);
-      showConfirmation(`Xác nhận ${displayType} mã ${formattedCode} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}? Tồn kho sẽ là ${stockTrees} cây, ${stockMeters.toFixed(1)} mét.`, confirmFormCommand);
-      
-      document.getElementById('formCode').value = '';
-      document.getElementById('formTrees').value = '0';
-      document.getElementById('formMeters').value = '0.0';
-    }
-
-    // Xác nhận lệnh nhập liệu
-    function confirmFormCommand() {
-      console.log('confirmFormCommand called', pendingCommand);
-      if (pendingCommand) {
-        inventory[pendingCommand.code] = { trees: pendingCommand.stockTrees, meters: pendingCommand.stockMeters };
-        transactions.push(pendingCommand);
-        saveData();
-        updateUI();
-        document.getElementById('output').textContent = 'Đã cập nhật thành công!';
-        pendingCommand = null;
-      } else {
-        document.getElementById('output').textContent = 'Lỗi: Không có lệnh để xác nhận!';
+        pendingCommand = { date: formattedDate, type, displayType: 'xuất', code: formattedCode, trees, meters: formattedMeters, stockTrees, stockMeters };
+        showConfirmation(`Xác nhận xuất mã ${formattedCode} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}? Tồn kho sẽ là ${stockTrees} cây, ${stockMeters.toFixed(1)} mét.`, function() {
+          // Cập nhật activeInputs
+          activeInputs = updatedInputs.filter(t => t.trees > 0);
+          inventory[formattedCode] = { trees: stockTrees, meters: stockMeters };
+          if (stockTrees === 0 && stockMeters === 0) delete inventory[formattedCode];
+          transactions.push(pendingCommand);
+          saveData();
+          updateUI();
+          document.getElementById('output').textContent = 'Đã cập nhật thành công!';
+          pendingCommand = null;
+          document.getElementById('formCode').value = '';
+          document.getElementById('formTrees').value = '0';
+          document.getElementById('formMeters').value = '0.0';
+        });
       }
     }
 
@@ -586,6 +624,37 @@
     // Xóa giao dịch
     function deleteTransaction(index) {
       if (confirm('Bạn có chắc muốn xóa giao dịch này?')) {
+        const transaction = transactions[index];
+        if (transaction.type === 'n') {
+          // Xóa giao dịch nhập khỏi activeInputs
+          activeInputs = activeInputs.filter(t => !(t.code === transaction.code && t.trees === transaction.trees && t.meters === transaction.meters && t.date === transaction.date));
+        } else if (transaction.type === 'x') {
+          // Phục hồi giao dịch nhập
+          const matchingInputs = transactions.slice(0, index).reverse().filter(t => t.type === 'n' && t.code === transaction.code);
+          let treesToRestore = transaction.trees;
+          let metersToRestore = transaction.meters;
+          for (let input of matchingInputs) {
+            if (treesToRestore <= 0 || metersToRestore <= 0) break;
+            const metersPerTree = input.meters / input.trees;
+            if (metersPerTree === metersToRestore / treesToRestore) {
+              const existingInput = activeInputs.find(t => t.code === input.code && t.date === input.date && t.trees === 0);
+              if (existingInput) {
+                existingInput.trees += input.trees;
+                existingInput.meters += input.meters;
+              } else {
+                activeInputs.push({
+                  id: inputIdCounter++,
+                  date: input.date,
+                  code: input.code,
+                  trees: input.trees,
+                  meters: input.meters
+                });
+              }
+              treesToRestore -= input.trees;
+              metersToRestore -= input.meters;
+            }
+          }
+        }
         transactions.splice(index, 1);
         recalculateInventory();
         saveData();
@@ -642,19 +711,86 @@
       const formattedCode = code.slice(0, 3) + '-' + code.slice(3);
       const formattedDate = new Date(date).toLocaleDateString('vi-VN');
       const displayType = type === 'n' ? 'nhập' : 'xuất';
+
+      // Xóa giao dịch cũ
+      const oldTransaction = transactions[editingIndex];
+      if (oldTransaction.type === 'n') {
+        activeInputs = activeInputs.filter(t => !(t.code === oldTransaction.code && t.trees === oldTransaction.trees && t.meters === oldTransaction.meters && t.date === oldTransaction.date));
+      } else if (oldTransaction.type === 'x') {
+        const matchingInputs = transactions.slice(0, editingIndex).reverse().filter(t => t.type === 'n' && t.code === oldTransaction.code);
+        let treesToRestore = oldTransaction.trees;
+        let metersToRestore = oldTransaction.meters;
+        for (let input of matchingInputs) {
+          if (treesToRestore <= 0 || metersToRestore <= 0) break;
+          const metersPerTree = input.meters / input.trees;
+          if (metersPerTree === metersToRestore / treesToRestore) {
+            const existingInput = activeInputs.find(t => t.code === input.code && t.date === input.date && t.trees === 0);
+            if (existingInput) {
+              existingInput.trees += input.trees;
+              existingInput.meters += input.meters;
+            } else {
+              activeInputs.push({
+                id: inputIdCounter++,
+                date: input.date,
+                code: input.code,
+                trees: input.trees,
+                meters: input.meters
+              });
+            }
+            treesToRestore -= input.trees;
+            metersToRestore -= input.meters;
+          }
+        }
+      }
+
+      // Thêm giao dịch mới
       let stockTrees = (inventory[formattedCode]?.trees || 0);
       let stockMeters = (inventory[formattedCode]?.meters || 0);
-
       if (type === 'n') {
-        stockTrees += trees - (transactions[editingIndex].type === 'n' ? transactions[editingIndex].trees : 0);
-        stockMeters += formattedMeters - (transactions[editingIndex].type === 'n' ? transactions[editingIndex].meters : 0);
+        stockTrees += trees;
+        stockMeters += formattedMeters;
+        activeInputs.push({
+          id: inputIdCounter++,
+          date: formattedDate,
+          code: formattedCode,
+          trees,
+          meters: formattedMeters
+        });
       } else if (type === 'x') {
-        stockTrees -= trees - (transactions[editingIndex].type === 'x' ? transactions[editingIndex].trees : 0);
-        stockMeters -= formattedMeters - (transactions[editingIndex].type === 'x' ? transactions[editingIndex].meters : 0);
-        if (stockTrees < 0 || stockMeters < 0) {
-          document.getElementById('output').textContent = `Lỗi: Không đủ tồn kho mã ${formattedCode} sau chỉnh sửa.`;
+        if ((inventory[formattedCode]?.trees || 0) < trees || (inventory[formattedCode]?.meters || 0) < formattedMeters) {
+          document.getElementById('output').textContent = `Lỗi: Không đủ tồn kho mã ${formattedCode}.`;
           return;
         }
+        let remainingTrees = trees;
+        let remainingMeters = formattedMeters;
+        const matchingInputs = activeInputs.filter(t => t.code === formattedCode && t.trees > 0).sort((a, b) => {
+          const dateA = new Date(a.date.split('/').reverse().join('-'));
+          const dateB = new Date(b.date.split('/').reverse().join('-'));
+          return dateA - dateB;
+        });
+        const updatedInputs = [...activeInputs];
+        let valid = false;
+        for (let input of matchingInputs) {
+          if (remainingTrees <= 0 || remainingMeters <= 0) break;
+          const inputIndex = updatedInputs.findIndex(t => t.id === input.id);
+          const metersPerTree = input.meters / input.trees;
+          if (metersPerTree === formattedMeters / trees) {
+            const treesToDeduct = Math.min(remainingTrees, input.trees);
+            const metersToDeduct = treesToDeduct * metersPerTree;
+            updatedInputs[inputIndex].trees -= treesToDeduct;
+            updatedInputs[inputIndex].meters -= metersToDeduct;
+            remainingTrees -= treesToDeduct;
+            remainingMeters -= metersToDeduct;
+            valid = true;
+          }
+        }
+        if (!valid || remainingTrees > 0 || remainingMeters > 0) {
+          document.getElementById('output').textContent = `Lỗi: Không tìm thấy giao dịch nhập phù hợp cho ${trees} cây, ${formattedMeters.toFixed(1)} mét mã ${formattedCode}.`;
+          return;
+        }
+        activeInputs = updatedInputs.filter(t => t.trees > 0);
+        stockTrees -= trees;
+        stockMeters -= formattedMeters;
       }
 
       transactions[editingIndex] = { date: formattedDate, type, displayType, code: formattedCode, trees, meters: formattedMeters, stockTrees, stockMeters };
@@ -683,14 +819,14 @@
     function nextInventoryPage() {
       const fabricType = document.getElementById('searchFabricType').value;
       const color = document.getElementById('searchColor').value;
-      const filteredInventory = transactions.filter(t => {
-        if (!t || !t.code || !['n', 'x'].includes(t.type)) return false;
+      const filteredInputs = activeInputs.filter(t => {
+        if (!t || !t.code || t.trees <= 0) return false;
         return (
           (!fabricType || t.code.startsWith(fabricType + '-')) &&
           (!color || t.code.endsWith('-' + color))
         );
       });
-      const totalInventoryPages = Math.ceil(filteredInventory.length / inventoryItemsPerPage);
+      const totalInventoryPages = Math.ceil(filteredInputs.length / inventoryItemsPerPage);
       if (inventoryPage < totalInventoryPages) {
         inventoryPage++;
         updateUI();
@@ -749,27 +885,13 @@
     // Tab Quản lý dữ liệu: Xác nhận và xử lý
     function showExportInventoryConfirmation() {
       showConfirmation('Xác nhận xuất tồn kho?', function() {
-        const headers = ['Ngày', 'Loại', 'Mã vải', 'Số cây', 'Số mét', 'Tồn kho (cây)', 'Tồn kho (mét)'];
-        const rows = [];
-        Object.keys(inventory).sort().forEach(code => {
-          const data = inventory[code];
-          const lastTransaction = [...transactions]
-            .reverse()
-            .find(t => t.code === code) || {
-              date: new Date().toLocaleDateString('vi-VN'),
-              displayType: 'nhập',
-              type: 'n'
-            };
-          rows.push([
-            lastTransaction.date,
-            lastTransaction.displayType,
-            code,
-            data.trees,
-            data.meters.toFixed(1),
-            data.trees,
-            data.meters.toFixed(1)
-          ]);
-        });
+        const headers = ['Ngày', 'Mã vải', 'Số cây', 'Số mét'];
+        const rows = activeInputs.filter(t => t.trees > 0).map(t => [
+          t.date,
+          t.code,
+          t.trees,
+          t.meters.toFixed(1)
+        ]);
         const csvContent = [
           headers.join(','),
           ...rows.map(row => row.join(','))
@@ -803,38 +925,49 @@
           try {
             const text = e.target.result;
             const lines = text.split('\n').map(line => line.split(','));
-            if (lines.length < 1 || lines[0].length < 7 || lines[0][0] !== 'Ngày') {
+            if (lines.length < 1 || lines[0].length < 4 || lines[0][0] !== 'Ngày') {
               document.getElementById('output').textContent = 'File CSV không hợp lệ!';
               return;
             }
             const newTransactions = [];
+            const newActiveInputs = [];
             for (let i = 1; i < lines.length; i++) {
-              const [date, displayType, code, trees, meters, stockTrees, stockMeters] = lines[i];
-              if (date && displayType && code && trees && meters && stockTrees && stockMeters) {
+              const [date, code, trees, meters] = lines[i];
+              if (date && code && trees && meters) {
                 if (!/^\w{3}-\w{3}$/.test(code)) {
                   document.getElementById('output').textContent = `Mã vải không hợp lệ: ${code}`;
                   return;
                 }
-                const type = displayType === 'nhập' ? 'n' : displayType === 'xuất' ? 'x' : null;
-                if (!type) continue;
+                newActiveInputs.push({
+                  id: inputIdCounter++,
+                  date,
+                  code,
+                  trees: parseInt(trees),
+                  meters: parseFloat(meters)
+                });
                 newTransactions.push({
                   date,
-                  type,
-                  displayType,
+                  type: 'n',
+                  displayType: 'nhập',
                   code,
                   trees: parseInt(trees),
                   meters: parseFloat(meters),
-                  stockTrees: parseInt(stockTrees),
-                  stockMeters: parseFloat(stockMeters)
+                  stockTrees: 0, // Sẽ tính lại
+                  stockMeters: 0
                 });
               }
             }
-            if (newTransactions.length === 0) {
+            if (newActiveInputs.length === 0) {
               document.getElementById('output').textContent = 'File CSV không chứa dữ liệu hợp lệ!';
               return;
             }
             transactions = newTransactions;
+            activeInputs = newActiveInputs;
             recalculateInventory();
+            transactions.forEach(t => {
+              t.stockTrees = inventory[t.code]?.trees || 0;
+              t.stockMeters = inventory[t.code]?.meters || 0;
+            });
             currentPage = 1;
             inventoryPage = 1;
             saveData();
@@ -882,6 +1015,8 @@
       showConfirmation('Xóa toàn bộ dữ liệu? Hành động này không thể hoàn tác.', function() {
         inventory = {};
         transactions = [];
+        activeInputs = [];
+        inputIdCounter = 1;
         currentPage = 1;
         inventoryPage = 1;
         saveData();
