@@ -339,7 +339,6 @@
           inventory[t.code].meters += t.meters;
         }
       });
-      // Thêm các mã từ transactions nếu chưa có trong inventory
       transactions.forEach(t => {
         if (!inventory[t.code]) {
           inventory[t.code] = { trees: 0, meters: 0 };
@@ -349,6 +348,7 @@
 
     // Hàm điền form lệnh Xuất từ Tab Tồn kho
     function fillExportForm(code, trees, meters) {
+      console.log('fillExportForm called:', { code, trees, meters });
       const inputTab = new bootstrap.Tab(document.getElementById('input-tab'));
       inputTab.show();
       document.getElementById('formType').value = 'x';
@@ -359,6 +359,7 @@
 
     // Cập nhật giao diện
     function updateUI() {
+      console.log('updateUI called');
       // Cập nhật 5 mã gần nhất
       const recentInventoryBody = document.getElementById('recent-inventory');
       recentInventoryBody.innerHTML = '';
@@ -509,6 +510,7 @@
 
     // Xử lý lệnh từ form
     function processFormCommand() {
+      console.log('processFormCommand called');
       const type = document.getElementById('formType').value;
       const code = document.getElementById('formCode').value.trim().toUpperCase();
       let trees = parseInt(document.getElementById('formTrees').value);
@@ -632,6 +634,7 @@
 
     // Hiển thị popup xác nhận
     function showConfirmation(message, callback) {
+      console.log('showConfirmation called:', message);
       document.getElementById('confirmationMessage').textContent = message;
       const modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
       modal.show();
@@ -640,6 +643,7 @@
       const newConfirmButton = confirmButton.cloneNode(true);
       confirmButton.parentNode.replaceChild(newConfirmButton, confirmButton);
       newConfirmButton.addEventListener('click', () => {
+        console.log('Confirm button clicked');
         if (callback) callback();
         modal.hide();
       });
@@ -647,6 +651,7 @@
 
     // Xóa giao dịch
     function deleteTransaction(index) {
+      console.log('deleteTransaction called:', index);
       showConfirmation('Bạn có chắc muốn xóa giao dịch này?', () => {
         const transaction = transactions[index];
         if (transaction.type === 'n') {
@@ -687,6 +692,7 @@
 
     // Chỉnh sửa giao dịch
     function editTransaction(index) {
+      console.log('editTransaction called:', index);
       editingIndex = index;
       const t = transactions[index];
       if (!t) return;
@@ -702,6 +708,7 @@
 
     // Lưu giao dịch đã chỉnh sửa
     function saveEditTransaction() {
+      console.log('saveEditTransaction called');
       const type = document.getElementById('editType').value;
       const code = document.getElementById('editCode').value.trim().toUpperCase();
       let trees = parseInt(document.getElementById('editTrees').value);
@@ -733,7 +740,6 @@
       const formattedDate = new Date(date).toLocaleDateString('vi-VN');
       const displayType = type === 'n' ? 'nhập' : 'xuất';
 
-      // Xóa giao dịch cũ
       const oldTransaction = transactions[editingIndex];
       if (oldTransaction.type === 'n') {
         activeInputs = activeInputs.filter(t => !(t.code === oldTransaction.code && t.trees === oldTransaction.trees && t.meters === oldTransaction.meters && t.date === oldTransaction.date));
@@ -764,7 +770,6 @@
         }
       }
 
-      // Thêm giao dịch mới
       let stockTrees = (inventory[formattedCode]?.trees || 0);
       let stockMeters = (inventory[formattedCode]?.meters || 0);
       if (type === 'n') {
@@ -831,11 +836,13 @@
 
     // Áp dụng bộ lọc tồn kho
     function applyInventoryFilter() {
+      console.log('applyInventoryFilter called');
       updateUI();
     }
 
     // Áp dụng bộ lọc lịch sử
     function applyFilter() {
+      console.log('applyFilter called');
       currentFilter.code = document.getElementById('filterCode').value;
       currentFilter.startDate = document.getElementById('filterStartDate').value;
       currentFilter.endDate = document.getElementById('filterEndDate').value;
@@ -845,6 +852,7 @@
 
     // Xóa bộ lọc lịch sử
     function clearHistoryFilter() {
+      console.log('clearHistoryFilter called');
       document.getElementById('filterCode').value = '';
       document.getElementById('filterStartDate').value = '';
       document.getElementById('filterEndDate').value = '';
@@ -855,6 +863,7 @@
 
     // Chuyển trang trước (lịch sử)
     function prevPage() {
+      console.log('prevPage called');
       if (currentPage > 1) {
         currentPage--;
         updateUI();
@@ -863,6 +872,7 @@
 
     // Chuyển trang sau (lịch sử)
     function nextPage() {
+      console.log('nextPage called');
       const filteredTransactions = transactions.filter(t => {
         if (!t || !t.date || !t.code) return false;
         const [day, month, year] = t.date.split('/');
@@ -885,10 +895,12 @@
 
     // Tab Quản lý dữ liệu: Xác nhận và xử lý
     function showExportInventoryConfirmation() {
+      console.log('showExportInventoryConfirmation called');
       showConfirmation('Xác nhận xuất dữ liệu tồn kho?', () => {
+        console.log('Export inventory confirmed');
         const headers = ['Mã vải', 'Số cây', 'Số mét'];
         const rows = Object.keys(inventory).map(code => [
-          code,
+          `"${code}"`,
           inventory[code].trees,
           inventory[code].meters.toFixed(1)
         ]);
@@ -896,7 +908,8 @@
           headers.join(','),
           ...rows.map(row => row.join(','))
         ].join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const BOM = '\uFEFF'; // Thêm BOM để hỗ trợ UTF-8 trên Excel
+        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         const date = new Date().toISOString().split('T')[0].replace(/-/g, '');
@@ -909,6 +922,7 @@
     }
 
     function showImportConfirmation() {
+      console.log('showImportConfirmation called');
       const fileInput = document.getElementById('importTransactions');
       const file = fileInput.files[0];
       if (!file) {
@@ -920,26 +934,47 @@
         return;
       }
       showConfirmation('Import sẽ ghi đè dữ liệu hiện tại. Bạn có chắc muốn tiếp tục?', () => {
+        console.log('Import confirmed');
         const reader = new FileReader();
         reader.onload = function(e) {
           try {
             const text = e.target.result;
-            const lines = text.split('\n').map(line => line.split(','));
-            if (lines.length < 1 || lines[0].length < 4 || lines[0][0] !== 'Ngày') {
-              document.getElementById('output').textContent = 'File CSV không hợp lệ!';
+            const lines = text.split('\n').map(line => {
+              const values = [];
+              let current = '';
+              let inQuotes = false;
+              for (let char of line) {
+                if (char === '"') {
+                  inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                  values.push(current.trim());
+                  current = '';
+                } else {
+                  current += char;
+                }
+              }
+              values.push(current.trim());
+              return values;
+            });
+            if (lines.length < 1 || lines[0].length < 4 || lines[0][0].toLowerCase() !== 'ngày') {
+              document.getElementById('output').textContent = 'File CSV không hợp lệ! Đảm bảo có cột: Ngày, Mã vải, Số cây, Số mét.';
               return;
             }
             const newTransactions = [];
             const newActiveInputs = [];
             for (let i = 1; i < lines.length; i++) {
-              const [date, code, trees, meters] = lines[i];
+              const [date, code, trees, meters] = lines[i].map(v => v.replace(/^"|"$/g, ''));
               if (date && code && trees && meters) {
                 if (!/^\w{3}-\w{3}$/.test(code)) {
-                  document.getElementById('output').textContent = `Mã vải không hợp lệ: ${code}`;
+                  document.getElementById('output').textContent = `Mã vải không hợp lệ ở dòng ${i + 1}: ${code}`;
                   return;
                 }
                 const parsedTrees = parseInt(trees);
                 const parsedMeters = parseFloat(meters);
+                if (isNaN(parsedTrees) || parsedTrees < 0 || isNaN(parsedMeters) || parsedMeters < 0) {
+                  document.getElementById('output').textContent = `Dữ liệu không hợp lệ ở dòng ${i + 1}: Số cây hoặc số mét không hợp lệ`;
+                  return;
+                }
                 if (parsedTrees > 0 || parsedMeters > 0) {
                   newActiveInputs.push({
                     id: inputIdCounter++,
@@ -978,21 +1013,26 @@
             document.getElementById('output').textContent = 'Đã import dữ liệu thành công!';
             fileInput.value = '';
           } catch (error) {
+            console.error('Lỗi đọc file CSV:', error);
             document.getElementById('output').textContent = 'Lỗi đọc file CSV!';
-            console.error('Lỗi import:', error);
           }
+        };
+        reader.onerror = function() {
+          document.getElementById('output').textContent = 'Lỗi đọc file CSV!';
         };
         reader.readAsText(file);
       });
     }
 
     function showExportDataConfirmation() {
+      console.log('showExportDataConfirmation called');
       showConfirmation('Xác nhận xuất dữ liệu giao dịch?', () => {
+        console.log('Export data confirmed');
         const headers = ['Ngày', 'Loại', 'Mã vải', 'Số cây', 'Số mét', 'Tồn kho (cây)', 'Tồn kho (mét)'];
         const rows = transactions.map(t => [
-          t.date,
-          t.displayType,
-          t.code,
+          `"${t.date}"`,
+          `"${t.displayType}"`,
+          `"${t.code}"`,
           t.trees,
           t.meters.toFixed(1),
           t.stockTrees,
@@ -1002,7 +1042,8 @@
           headers.join(','),
           ...rows.map(row => row.join(','))
         ].join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const BOM = '\uFEFF';
+        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         const date = new Date().toISOString().split('T')[0].replace(/-/g, '');
@@ -1010,12 +1051,14 @@
         a.download = `tonkho_lichsu_${date}.csv`;
         a.click();
         URL.revokeObjectURL(url);
-        document.getElementById('output').textContent = 'Đã xuất dữ liệu!';
+        document.getElementById('output').textContent = 'Đã xuất dữ liệu giao dịch!';
       });
     }
 
     function showClearAllConfirmation() {
+      console.log('showClearAllConfirmation called');
       showConfirmation('Xóa toàn bộ dữ liệu? Hành động này không thể hoàn tác.', () => {
+        console.log('Clear all confirmed');
         inventory = {};
         transactions = [];
         activeInputs = [];
