@@ -22,7 +22,7 @@
     .form-section, .filter-section { margin-bottom: 25px; }
     .pagination-section { margin-top: 15px; display: flex; align-items: center; gap: 10px; }
     .pagination-btn { padding: 6px 12px; }
-    .action-btn { padding: 5px 10px; font-size: 0.85em; }
+    .action-btn { padding: 5px 10px; font-size: 0.85em; margin-right: 5px; }
     .total-row { font-weight: bold; background-color: #e9ecef; }
     @media (max-width: 576px) {
       body { padding: 10px; }
@@ -157,7 +157,18 @@
           <h2 class="mt-2" style="font-size: 1.2em;">Lịch sử giao dịch</h2>
           <div class="table-container">
             <table class="table table-bordered">
-              <thead><tr><th>Ngày</th><th>Loại</th><th>Mã vải</th><th>Số cây</th><th>Số mét</th><th>Tồn kho (cây)</th><th>Tồn kho (mét)</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>Ngày</th>
+                  <th>Loại</th>
+                  <th>Mã vải</th>
+                  <th>Số cây</th>
+                  <th>Số mét</th>
+                  <th>Tồn kho (cây)</th>
+                  <th>Tồn kho (mét)</th>
+                  <th>Hành động</th>
+                </tr>
+              </thead>
               <tbody id="transactions"></tbody>
             </table>
           </div>
@@ -177,7 +188,7 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Xác nhận lệnh</h5>
+          <h5 class="modal-title">Xác nhận</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body" id="confirmationMessage"></div>
@@ -200,6 +211,7 @@
         this.currentPage = 1;
         this.itemsPerPage = 10;
         this.latestCode = null;
+        this.editingIndex = null; // Theo dõi giao dịch đang sửa
       }
 
       validateTransaction(code, trees, meters) {
@@ -248,14 +260,28 @@
         this.inventory = this.inventory.filter(line => {
           if (line.trees === 0 && line.meters === 0) {
             const otherLines = this.inventory.filter(l => l.code === line.code && (l.trees > 0 || l.meters > 0));
-            return otherLines.length === 0; // Giữ nếu không có dòng nào khác > 0
+            return otherLines.length === 0;
           }
-          return true; // Giữ tất cả dòng không bằng 0
+          return true;
         });
         console.log('Cleaned zero lines, current inventory:', this.inventory);
       }
 
-      addTransaction(type, code, trees, meters, date) {
+      rebuildInventory() {
+        const transactions = [...this.transactions];
+        this.inventory = [];
+        this.transactions = [];
+        transactions.sort((a, b) => this.parseDate(a.date) - this.parseDate(b.date)); // Sắp xếp theo ngày tăng dần để rebuild
+        for (const t of transactions) {
+          const result = this.addTransaction(t.type, t.code.replace('-', ''), t.trees, t.meters, t.date);
+          if (!result.success) {
+            console.error('Error rebuilding inventory for transaction:', t, result.error);
+          }
+        }
+        console.log('Rebuilt inventory:', this.inventory);
+      }
+
+      addTransaction(type, code, trees, meters, date, skipRebuild = false) {
         console.log('Adding transaction:', { type, code, trees, meters, date });
         const formattedCode = code.slice(0, 3) + '-' + code.slice(3);
         const formattedMeters = parseFloat(meters.toFixed(1));
@@ -298,7 +324,9 @@
           }
         }
 
-        this.cleanZeroLines(); // Xóa các dòng 0 nếu có dòng > 0
+        if (!skipRebuild) {
+          this.cleanZeroLines();
+        }
 
         const stockLines = this.inventory.filter(line => line.code === formattedCode);
         const stockTrees = stockLines.reduce((sum, line) => sum + line.trees, 0);
@@ -324,6 +352,41 @@
         return { success: true, transaction, formattedCode };
       }
 
+      editTransaction(index, type, code, trees, meters, date) {
+        console.log('Editing transaction:', { index, type, code, trees, meters, date });
+        const oldTransaction = this.transactions[index];
+        if (!oldTransaction) {
+          return { success: false, error: 'Giao dịch không tồn tại!' };
+        }
+
+        // Xóa giao dịch cũ và rebuild inventory
+        this.transactions.splice(index, 1);
+        this.rebuildInventory();
+
+        // Thêm giao dịch mới
+        const result = this.addTransaction(type, code, trees, meters, date);
+        if (!result.success) {
+          // Khôi phục giao dịch cũ nếu thất bại
+          this.transactions.splice(index, 0, oldTransaction);
+          this.rebuildInventory();
+          return result;
+        }
+
+        return { success: true };
+      }
+
+      deleteTransaction(index) {
+        console.log('Deleting transaction at index:', index);
+        const transaction = this.transactions[index];
+        if (!transaction) {
+          return { success: false, error: 'Giao dịch không tồn tại!' };
+        }
+
+        this.transactions.splice(index, 1);
+        this.rebuildInventory();
+        return { success: true };
+      }
+
       getFilteredTransactions() {
         const filtered = this.transactions.filter(t => {
           const date = this.parseDate(t.date);
@@ -339,6 +402,7 @@
             (!endDate || date <= endDate)
           );
         });
+        filtered.sort((a, b) => this.parseDate(b.date) - this.parseDate(a.date)); // Sắp xếp mới nhất trước
         console.log('Filtered transactions:', filtered);
         return filtered;
       }
@@ -352,7 +416,7 @@
             (!this.filterInventory.color || color === this.filterInventory.color)
           );
         });
-        filtered.sort((a, b) => a.code.localeCompare(b.code)); // Sắp xếp theo mã vải
+        filtered.sort((a, b) => a.code.localeCompare(b.code));
         console.log('Filtered inventory:', filtered);
         return filtered;
       }
@@ -394,7 +458,7 @@
           if (this.transactions.length > 0) {
             this.latestCode = this.transactions[this.transactions.length - 1].code;
           }
-          this.cleanZeroLines(); // Áp dụng logic xóa khi tải dữ liệu
+          this.cleanZeroLines();
           console.log('Loaded data:', { inventory: this.inventory, transactions: this.transactions });
         } catch (error) {
           console.error('Lỗi tải dữ liệu:', error);
@@ -516,17 +580,24 @@
       const pageTransactions = filteredTransactions.slice(start, start + inventoryManager.itemsPerPage);
       console.log('Updating history table:', { transactions: inventoryManager.transactions.length, filteredTransactions: filteredTransactions.length, pageTransactions: pageTransactions.length });
       transactionsBody.innerHTML = pageTransactions.length === 0
-        ? '<tr><td colspan="7" class="text-center">Không có giao dịch</td></tr>'
-        : pageTransactions.map(t => `
-            <tr>
-              <td>${t.date}</td>
-              <td>${t.displayType}</td>
-              <td>${t.code}</td>
-              <td>${t.trees}</td>
-              <td>${t.meters.toFixed(1)} m</td>
-              <td>${t.stockTrees}</td>
-              <td>${t.stockMeters.toFixed(1)} m</td>
-            </tr>`).join('');
+        ? '<tr><td colspan="8" class="text-center">Không có giao dịch</td></tr>'
+        : pageTransactions.map((t, index) => {
+            const globalIndex = start + index;
+            return `
+              <tr>
+                <td>${t.date}</td>
+                <td>${t.displayType}</td>
+                <td>${t.code}</td>
+                <td>${t.trees}</td>
+                <td>${t.meters.toFixed(1)} m</td>
+                <td>${t.stockTrees}</td>
+                <td>${t.stockMeters.toFixed(1)} m</td>
+                <td>
+                  <button class="btn btn-warning btn-sm action-btn" onclick="editTransaction(${globalIndex})">Sửa</button>
+                  <button class="btn btn-danger btn-sm action-btn" onclick="deleteTransaction(${globalIndex})">Xóa</button>
+                </td>
+              </tr>`;
+          }).join('');
       const pageInfo = document.getElementById('pageInfo');
       if (pageInfo) pageInfo.textContent = `Trang ${inventoryManager.currentPage}/${totalPages}`;
       const prevButton = document.getElementById('prevPageButton');
@@ -562,7 +633,7 @@
       const meters = parseFloat(document.getElementById('formMeters')?.value);
       const date = document.getElementById('formDate')?.value || inventoryManager.today;
 
-      console.log('Processing form:', { type, code, trees, meters, date });
+      console.log('Processing form:', { type, code, trees, meters, date, editingIndex: inventoryManager.editingIndex });
 
       if (!type || !code || isNaN(trees) || isNaN(meters)) {
         showOutput('Vui lòng nhập đầy đủ thông tin!');
@@ -579,26 +650,93 @@
       const formattedMeters = parseFloat(meters.toFixed(1));
       const formattedDate = inventoryManager.formatDate(date);
 
-      showConfirmation(
-        `Xác nhận ${type === 'n' ? 'nhập' : 'xuất'} mã ${formattedCode} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}?`,
-        () => {
-          console.log('Confirmed transaction');
-          const result = inventoryManager.addTransaction(type, code, trees, meters, date);
-          if (!result.success) {
-            showOutput(result.error);
-            return;
-          }
-          if (!inventoryManager.saveData()) {
-            showOutput('Lỗi lưu dữ liệu!');
-            return;
-          }
-          updateUI();
-          showOutput('Đã cập nhật thành công!');
-          document.getElementById('formCode').value = '';
-          document.getElementById('formTrees').value = '0';
-          document.getElementById('formMeters').value = '0.0';
+      const message = inventoryManager.editingIndex !== null
+        ? `Xác nhận cập nhật giao dịch mã ${formattedCode} với ${type === 'n' ? 'nhập' : 'xuất'} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}?`
+        : `Xác nhận ${type === 'n' ? 'nhập' : 'xuất'} mã ${formattedCode} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}?`;
+
+      showConfirmation(message, () => {
+        console.log('Confirmed transaction');
+        let result;
+        if (inventoryManager.editingIndex !== null) {
+          result = inventoryManager.editTransaction(inventoryManager.editingIndex, type, code, trees, meters, date);
+          inventoryManager.editingIndex = null;
+        } else {
+          result = inventoryManager.addTransaction(type, code, trees, meters, date);
         }
-      );
+
+        if (!result.success) {
+          showOutput(result.error);
+          return;
+        }
+        if (!inventoryManager.saveData()) {
+          showOutput('Lỗi lưu dữ liệu!');
+          return;
+        }
+        updateUI();
+        showOutput('Đã cập nhật thành công!');
+        document.getElementById('formCode').value = '';
+        document.getElementById('formTrees').value = '0';
+        document.getElementById('formMeters').value = '0.0';
+      });
+    };
+
+    const editTransaction = (index) => {
+      const transaction = inventoryManager.transactions[index];
+      if (!transaction) {
+        console.error('Invalid transaction index:', index);
+        showOutput('Lỗi truy cập giao dịch!');
+        return;
+      }
+      const inputTab = document.getElementById('input-tab');
+      if (!inputTab) {
+        console.error('Input tab not found');
+        showOutput('Lỗi chuyển tab nhập liệu!');
+        return;
+      }
+      const formType = document.getElementById('formType');
+      const formCode = document.getElementById('formCode');
+      const formTrees = document.getElementById('formTrees');
+      const formMeters = document.getElementById('formMeters');
+      const formDate = document.getElementById('formDate');
+      if (!formType || !formCode || !formTrees || !formMeters || !formDate) {
+        console.error('Form elements not found');
+        showOutput('Lỗi điền form nhập liệu!');
+        return;
+      }
+
+      inventoryManager.editingIndex = index;
+      formType.value = transaction.type;
+      formCode.value = transaction.code.replace('-', '');
+      formTrees.value = transaction.trees;
+      formMeters.value = transaction.meters.toFixed(1);
+      formDate.value = transaction.date.split('/').reverse().join('-'); // Chuyển DD/MM/YYYY sang YYYY-MM-DD
+
+      const tab = new bootstrap.Tab(inputTab);
+      tab.show();
+      console.log('Editing transaction:', { index, transaction });
+    };
+
+    const deleteTransaction = (index) => {
+      const transaction = inventoryManager.transactions[index];
+      if (!transaction) {
+        console.error('Invalid transaction index:', index);
+        showOutput('Lỗi truy cập giao dịch!');
+        return;
+      }
+
+      showConfirmation(`Bạn có chắc chắn muốn xóa giao dịch ${transaction.displayType} mã ${transaction.code} ngày ${transaction.date}?`, () => {
+        const result = inventoryManager.deleteTransaction(index);
+        if (!result.success) {
+          showOutput(result.error);
+          return;
+        }
+        if (!inventoryManager.saveData()) {
+          showOutput('Lỗi lưu dữ liệu!');
+          return;
+        }
+        updateUI();
+        showOutput('Đã xóa giao dịch thành công!');
+      });
     };
 
     const applyFilter = () => {
