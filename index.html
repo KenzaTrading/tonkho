@@ -85,10 +85,10 @@
             <button class="btn btn-primary mt-3" id="processFormButton">Thực hiện</button>
           </div>
           <div id="output" class="text-center">Kết quả sẽ hiển thị ở đây...</div>
-          <h2 class="mt-4" style="font-size: 1.2em;">Cập nhật 5 mã gần nhất</h2>
+          <h2 class="mt-4" style="font-size: 1.2em;">Cập nhật mới nhất</h2>
           <table class="table table-bordered">
             <thead><tr><th>Mã vải</th><th>Số cây</th><th>Số mét</th></tr></thead>
-            <tbody id="recent-inventory"></tbody>
+            <tbody id="latest-inventory"></tbody>
           </table>
         </div>
         <div class="tab-pane fade" id="inventory">
@@ -161,6 +161,7 @@
         this.currentFilter = { code: '', startDate: '', endDate: '' };
         this.currentPage = 1;
         this.itemsPerPage = 10;
+        this.latestCode = null; // Lưu mã vải vừa giao dịch
       }
 
       validateTransaction(code, trees, meters) {
@@ -240,32 +241,11 @@
 
         this.transactions.push(transaction);
         this.inventory[formattedCode] = { trees: stockTrees, meters: stockMeters };
+        this.latestCode = formattedCode; // Lưu mã vải vừa giao dịch
         console.log('Added transaction:', transaction);
         console.log('Current transactions:', this.transactions);
+        console.log('Latest code:', this.latestCode);
         return { success: true, transaction };
-      }
-
-      getRecentCodes() {
-        // Tạo danh sách mã vải với thời gian giao dịch mới nhất
-        const codeLatestDate = {};
-        this.transactions
-          .filter(t => t.date && t.code && this.parseDate(t.date))
-          .forEach(t => {
-            const date = this.parseDate(t.date);
-            if (!codeLatestDate[t.code] || date > codeLatestDate[t.code].date) {
-              codeLatestDate[t.code] = { date, code: t.code };
-            }
-          });
-
-        // Chuyển thành mảng và sắp xếp theo thời gian giảm dần
-        const sortedCodes = Object.values(codeLatestDate)
-          .sort((a, b) => b.date - a.date)
-          .slice(0, 5)
-          .map(item => item.code);
-
-        console.log('Recent codes with latest dates:', codeLatestDate);
-        console.log('Sorted recent codes:', sortedCodes);
-        return sortedCodes;
       }
 
       getFilteredTransactions() {
@@ -342,21 +322,25 @@
       });
     };
 
-    const updateRecentInventory = () => {
-      const recentInventoryBody = document.getElementById('recent-inventory');
-      if (!recentInventoryBody) {
-        console.error('Element recent-inventory not found');
-        showOutput('Lỗi hiển thị 5 mã gần nhất!');
+    const updateLatestInventory = (latestCode) => {
+      const latestInventoryBody = document.getElementById('latest-inventory');
+      if (!latestInventoryBody) {
+        console.error('Element latest-inventory not found');
+        showOutput('Lỗi hiển thị cập nhật mới nhất!');
         return;
       }
-      const recentCodes = inventoryManager.getRecentCodes();
-      console.log('Updating recent inventory:', { transactions: inventoryManager.transactions.length, recentCodes });
-      recentInventoryBody.innerHTML = recentCodes.length === 0
-        ? '<tr><td colspan="3" class="text-center">Chưa có giao dịch</td></tr>'
-        : recentCodes.map(code => {
-            const { trees = 0, meters = 0 } = inventoryManager.inventory[code] || {};
-            return `<tr><td>${code}</td><td>${trees}</td><td>${meters.toFixed(1)} m</td></tr>`;
-          }).join('');
+      console.log('Updating latest inventory:', { latestCode });
+      if (!latestCode || !inventoryManager.inventory[latestCode]) {
+        latestInventoryBody.innerHTML = '<tr><td colspan="3" class="text-center">Chưa có giao dịch</td></tr>';
+        return;
+      }
+      const { trees = 0, meters = 0 } = inventoryManager.inventory[latestCode];
+      latestInventoryBody.innerHTML = `
+        <tr>
+          <td>${latestCode}</td>
+          <td>${trees}</td>
+          <td>${meters.toFixed(1)} m</td>
+        </tr>`;
     };
 
     const updateHistoryTable = () => {
@@ -405,7 +389,7 @@
 
     const updateUI = () => {
       console.log('Updating UI');
-      updateRecentInventory();
+      updateLatestInventory(inventoryManager.latestCode);
       updateHistoryTable();
       updateFilterDropdown();
     };
