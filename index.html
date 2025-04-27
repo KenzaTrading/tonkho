@@ -472,13 +472,13 @@
       console.log('Updating inventory table:', { inventoryCount: filteredInventory.length, totalTrees, totalMeters });
       inventoryTableBody.innerHTML = filteredInventory.length === 0
         ? '<tr><td colspan="4" class="text-center">Chưa có tồn kho</td></tr>'
-        : filteredInventory.map((line, index) => `
+        : filteredInventory.map(line => `
             <tr>
               <td>${line.code}</td>
               <td>${line.trees}</td>
               <td>${line.meters.toFixed(1)} m</td>
               <td>
-                <button class="btn btn-warning btn-sm action-btn" onclick="transferToInputTab(${index})">Xuất</button>
+                <button class="btn btn-warning btn-sm action-btn" onclick='transferToInputTab(${JSON.stringify(line)})'>Xuất</button>
               </td>
             </tr>`).join('');
 
@@ -642,10 +642,9 @@
       }
     };
 
-    const transferToInputTab = (index) => {
-      const line = inventoryManager.inventory[index];
-      if (!line) {
-        console.error('Invalid inventory line index:', index);
+    const transferToInputTab = (line) => {
+      if (!line || !line.code) {
+        console.error('Invalid inventory line:', line);
         showOutput('Lỗi truy cập dòng tồn kho!');
         return;
       }
