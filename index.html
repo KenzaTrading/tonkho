@@ -43,21 +43,21 @@
     <h1 class="text-center mb-4" style="font-size: 1.5em; color: #0d6efd;">Quản lý kho vải</h1>
     <div class="card">
       <ul class="nav nav-tabs" id="myTab" role="tablist">
-        <li class="nav-item" role="presentation">
-          <button class="nav-link active" id="input-tab" data-bs-toggle="tab" data-bs-target="#input" type="button" role="tab">Nhập liệu</button>
+        <li class="nav-item">
+          <button class="nav-link active" id="input-tab" data-bs-toggle="tab" data-bs-target="#input">Nhập liệu</button>
         </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" id="inventory-tab" data-bs-toggle="tab" data-bs-target="#inventory-tab-content" type="button" role="tab">Tồn kho</button>
+        <li class="nav-item">
+          <button class="nav-link" id="inventory-tab" data-bs-toggle="tab" data-bs-target="#inventory-tab-content">Tồn kho</button>
         </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">Lịch sử giao dịch</button>
+        <li class="nav-item">
+          <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history">Lịch sử giao dịch</button>
         </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" id="manage-tab" data-bs-toggle="tab" data-bs-target="#manage" type="button" role="tab">Quản lý dữ liệu</button>
+        <li class="nav-item">
+          <button class="nav-link" id="manage-tab" data-bs-toggle="tab" data-bs-target="#manage">Quản lý dữ liệu</button>
         </li>
       </ul>
       <div class="tab-content" id="myTabContent">
-        <div class="tab-pane fade show active" id="input" role="tabpanel">
+        <div class="tab-pane fade show active" id="input">
           <div class="form-section">
             <h5>Nhập liệu</h5>
             <div class="row g-3">
@@ -90,13 +90,11 @@
           <div id="output" class="text-center">Kết quả sẽ hiển thị ở đây...</div>
           <h2 class="mt-4" style="font-size: 1.2em;">Cập nhật 5 mã gần nhất</h2>
           <table class="table table-bordered">
-            <thead>
-              <tr><th>Mã vải</th><th>Số cây</th><th>Số mét</th></tr>
-            </thead>
+            <thead><tr><th>Mã vải</th><th>Số cây</th><th>Số mét</th></tr></thead>
             <tbody id="recent-inventory"></tbody>
           </table>
         </div>
-        <div class="tab-pane fade" id="inventory-tab-content" role="tabpanel">
+        <div class="tab-pane fade" id="inventory-tab-content">
           <div class="filter-section">
             <h5>Lọc tồn kho</h5>
             <div class="row g-3">
@@ -120,15 +118,13 @@
           <h2 class="mt-2" style="font-size: 1.2em;">Tồn kho</h2>
           <div class="table-container">
             <table class="table table-bordered">
-              <thead>
-                <tr><th>Mã vải</th><th>Số cây</th><th>Số mét</th><th>Hành động</th></tr>
-              </thead>
+              <thead><tr><th>Mã vải</th><th>Số cây</th><th>Số mét</th><th>Hành động</th></tr></thead>
               <tbody id="inventory"></tbody>
               <tfoot id="inventory-total" class="total-row"></tfoot>
             </table>
           </div>
         </div>
-        <div class="tab-pane fade" id="history" role="tabpanel">
+        <div class="tab-pane fade" id="history">
           <div class="filter-section">
             <h5>Lọc giao dịch</h5>
             <div class="row g-3">
@@ -154,9 +150,7 @@
           </div>
           <h2 class="mt-2" style="font-size: 1.2em;">Lịch sử giao dịch</h2>
           <table class="table table-bordered">
-            <thead>
-              <tr><th>Ngày</th><th>Loại</th><th>Mã vải</th><th>Số cây</th><th>Số mét</th><th>Tồn kho (cây)</th><th>Tồn kho (mét)</th><th>Hành động</th></tr>
-            </thead>
+            <thead><tr><th>Ngày</th><th>Loại</th><th>Mã vải</th><th>Số cây</th><th>Số mét</th><th>Tồn kho (cây)</th><th>Tồn kho (mét)</th><th>Hành động</th></tr></thead>
             <tbody id="transactions"></tbody>
           </table>
           <div class="pagination-section">
@@ -165,7 +159,7 @@
             <button class="btn btn-outline-primary pagination-btn" id="nextPageButton" disabled>Sau</button>
           </div>
         </div>
-        <div class="tab-pane fade" id="manage" role="tabpanel">
+        <div class="tab-pane fade" id="manage">
           <div class="form-section">
             <h5>Xuất dữ liệu tồn kho</h5>
             <button class="btn btn-primary" id="exportInventoryButton">Thực hiện</button>
@@ -187,12 +181,12 @@
       </div>
     </div>
   </div>
-  <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel">
+  <div class="modal fade" id="confirmationModal">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="confirmationModalLabel">Xác nhận lệnh</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <h5 class="modal-title">Xác nhận lệnh</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body" id="confirmationMessage"></div>
         <div class="modal-footer">
@@ -202,12 +196,12 @@
       </div>
     </div>
   </div>
-  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel">
+  <div class="modal fade" id="editModal">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="editModalLabel">Chỉnh sửa giao dịch</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <h5 class="modal-title">Chỉnh sửa giao dịch</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
@@ -258,7 +252,7 @@
     const showOutput = (msg) => document.getElementById('output').textContent = msg;
 
     const parseDate = (dateStr) => {
-      if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) return null;
+      if (!dateStr || !/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) return null;
       const [day, month, year] = dateStr.split('/').map(Number);
       const date = new Date(year, month - 1, day);
       return isNaN(date) ? null : date;
@@ -266,7 +260,7 @@
 
     const formatDate = (date) => new Date(date).toLocaleDateString('vi-VN');
 
-    const validateTransaction = (code, trees, meters, isEdit = false) => {
+    const validateTransaction = (code, trees, meters) => {
       if (!/^\w{6}$/.test(code)) return 'Mã vải phải có đúng 6 ký tự!';
       if (isNaN(trees) || trees < 0 || isNaN(meters) || meters < 0) return 'Số cây và số mét phải hợp lệ!';
       if (trees === 0 && meters !== 0) return 'Nếu số cây là 0, số mét phải là 0!';
@@ -290,9 +284,10 @@
     const loadData = () => {
       try {
         inventory = JSON.parse(localStorage.getItem('inventory') || '{}');
-        transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-        activeInputs = JSON.parse(localStorage.getItem('activeInputs') || '[]');
+        transactions = JSON.parse(localStorage.getItem('transactions') || '[]').filter(t => t.date && t.code && parseDate(t.date));
+        activeInputs = JSON.parse(localStorage.getItem('activeInputs') || '[]').filter(t => t.id && t.code && t.date);
         inputIdCounter = parseInt(localStorage.getItem('inputIdCounter') || '1');
+        recalculateInventory();
         updateUI();
       } catch (error) {
         console.error('Lỗi tải dữ liệu:', error);
@@ -310,6 +305,7 @@
         }
       });
       transactions.forEach(t => inventory[t.code] = inventory[t.code] || { trees: 0, meters: 0 });
+      console.log('Inventory recalculated:', inventory);
     };
 
     const showConfirmation = (message, callback) => {
@@ -327,17 +323,17 @@
 
     const updateRecentInventory = () => {
       const recentInventoryBody = document.getElementById('recent-inventory');
-      const sortedTransactions = [...transactions]
+      const sortedTransactions = transactions
         .filter(t => t.date && parseDate(t.date))
         .sort((a, b) => parseDate(b.date) - parseDate(a.date));
       const recentCodes = [...new Set(sortedTransactions.map(t => t.code))].slice(0, 5);
+      console.log('Recent codes:', recentCodes, 'Transactions:', sortedTransactions);
       recentInventoryBody.innerHTML = recentCodes.length === 0
         ? '<tr><td colspan="3" class="text-center">Chưa có giao dịch</td></tr>'
         : recentCodes.map(code => {
             const { trees = 0, meters = 0 } = inventory[code] || {};
             return `<tr><td>${code}</td><td>${trees}</td><td>${meters.toFixed(1)} m</td></tr>`;
           }).join('');
-      console.log('Recent codes:', recentCodes);
     };
 
     const updateInventoryTable = () => {
@@ -380,9 +376,8 @@
     const updateHistoryTable = () => {
       const transactionsBody = document.getElementById('transactions');
       const filteredTransactions = transactions.filter(t => {
-        if (!t?.date || !t?.code) return false;
         const date = parseDate(t.date);
-        if (!date) return false;
+        if (!date || !t.code) return false;
         const startDate = currentFilter.startDate ? new Date(currentFilter.startDate) : null;
         const endDate = currentFilter.endDate ? new Date(currentFilter.endDate) : null;
         return (
@@ -391,27 +386,30 @@
           (!endDate || date <= endDate)
         );
       });
-      const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
-      currentPage = Math.min(currentPage, totalPages || 1);
+      console.log('Filtered transactions:', filteredTransactions);
+      const totalPages = Math.max(1, Math.ceil(filteredTransactions.length / itemsPerPage));
+      currentPage = Math.min(currentPage, totalPages);
       const start = (currentPage - 1) * itemsPerPage;
       const pageTransactions = filteredTransactions.slice(start, start + itemsPerPage);
-      transactionsBody.innerHTML = pageTransactions.map((t, i) => `
-        <tr>
-          <td>${t.date}</td>
-          <td>${t.displayType}</td>
-          <td>${t.code}</td>
-          <td>${t.trees}</td>
-          <td>${t.meters.toFixed(1)} m</td>
-          <td>${t.stockTrees}</td>
-          <td>${t.stockMeters.toFixed(1)} m</td>
-          <td>
-            <button class="btn btn-sm btn-warning action-btn edit-btn" data-index="${start + i}">Sửa</button>
-            <button class="btn btn-sm btn-danger action-btn delete-btn" data-index="${start + i}">Xóa</button>
-          </td>
-        </tr>`).join('');
-      document.getElementById('pageInfo').textContent = `Trang ${currentPage}/${totalPages || 1}`;
+      transactionsBody.innerHTML = pageTransactions.length === 0
+        ? '<tr><td colspan="8" class="text-center">Không có giao dịch</td></tr>'
+        : pageTransactions.map((t, i) => `
+            <tr>
+              <td>${t.date}</td>
+              <td>${t.displayType}</td>
+              <td>${t.code}</td>
+              <td>${t.trees}</td>
+              <td>${t.meters.toFixed(1)} m</td>
+              <td>${t.stockTrees}</td>
+              <td>${t.stockMeters.toFixed(1)} m</td>
+              <td>
+                <button class="btn btn-sm btn-warning action-btn edit-btn" data-index="${start + i}">Sửa</button>
+                <button class="btn btn-sm btn-danger action-btn delete-btn" data-index="${start + i}">Xóa</button>
+              </td>
+            </tr>`).join('');
+      document.getElementById('pageInfo').textContent = `Trang ${currentPage}/${totalPages}`;
       document.getElementById('prevPageButton').disabled = currentPage === 1;
-      document.getElementById('nextPageButton').disabled = currentPage === totalPages || totalPages === 0;
+      document.getElementById('nextPageButton').disabled = currentPage === totalPages;
       document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', () => editTransaction(parseInt(btn.getAttribute('data-index')))));
       document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', () => deleteTransaction(parseInt(btn.getAttribute('data-index')))));
     };
@@ -429,13 +427,14 @@
     };
 
     const updateUI = () => {
+      console.log('Updating UI, transactions:', transactions.length);
       updateRecentInventory();
       updateInventoryTable();
       updateHistoryTable();
       updateDropdowns();
     };
 
-    const processOutputTransaction = (code, trees, meters, formattedDate, stockTrees, stockMeters) => {
+    const processOutputTransaction = (code, trees, meters) => {
       if (trees === 0 && meters === 0) return true;
       if ((inventory[code]?.trees || 0) < trees || (inventory[code]?.meters || 0) < meters) {
         showOutput(`Không đủ tồn kho mã ${code}. Tồn kho: ${inventory[code]?.trees || 0} cây, ${(inventory[code]?.meters || 0).toFixed(1)} mét.`);
@@ -513,7 +512,7 @@
           document.getElementById('formMeters').value = '0.0';
         });
       } else {
-        if (!processOutputTransaction(formattedCode, trees, formattedMeters, formattedDate, stockTrees, stockMeters)) return;
+        if (!processOutputTransaction(formattedCode, trees, formattedMeters)) return;
         stockTrees -= trees;
         stockMeters -= formattedMeters;
         transaction.stockTrees = stockTrees;
@@ -560,7 +559,7 @@
 
     const editTransaction = (index) => {
       const t = transactions[index];
-      if (!t) return;
+      if (!t) return showOutput('Giao dịch không hợp lệ!');
       document.getElementById('editType').value = t.type;
       document.getElementById('editCode').value = t.code.replace('-', '');
       document.getElementById('editMeters').value = t.meters.toFixed(1);
@@ -578,7 +577,7 @@
       const meters = parseFloat(document.getElementById('editMeters').value);
       const date = document.getElementById('editDate').value;
 
-      const error = validateTransaction(code, trees, meters, true);
+      const error = validateTransaction(code, trees, meters);
       if (error) return showOutput(error);
 
       const formattedCode = code.slice(0, 3) + '-' + code.slice(3);
@@ -607,7 +606,7 @@
         activeInputs.push({ id: inputIdCounter++, date: formattedDate, code: formattedCode, trees, meters: formattedMeters });
       } else if (type === 'x' && (trees > 0 || formattedMeters > 0)) {
         recalculateInventory();
-        if (!processOutputTransaction(formattedCode, trees, formattedMeters, formattedDate)) return;
+        if (!processOutputTransaction(formattedCode, trees, formattedMeters)) return;
       }
 
       recalculateInventory();
@@ -656,9 +655,8 @@
 
     const nextPage = () => {
       const filteredTransactions = transactions.filter(t => {
-        if (!t?.date || !t?.code) return false;
         const date = parseDate(t.date);
-        if (!date) return false;
+        if (!date || !t.code) return false;
         const startDate = currentFilter.startDate ? new Date(currentFilter.startDate) : null;
         const endDate = currentFilter.endDate ? new Date(currentFilter.endDate) : null;
         return (
@@ -667,7 +665,7 @@
           (!endDate || date <= endDate)
         );
       });
-      const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+      const totalPages = Math.max(1, Math.ceil(filteredTransactions.length / itemsPerPage));
       if (currentPage < totalPages) {
         currentPage++;
         updateUI();
@@ -756,7 +754,7 @@
                 }
                 stockTrees += trees;
                 stockMeters += formattedMeters;
-              } else if (!processOutputTransaction(code, trees, formattedMeters, date, stockTrees, stockMeters)) {
+              } else if (!processOutputTransaction(code, trees, formattedMeters)) {
                 return showOutput(`Lỗi dòng ${i + 2}: Không đủ tồn kho hoặc giao dịch nhập không phù hợp cho mã ${code}.`);
               } else {
                 stockTrees -= trees;
@@ -831,9 +829,17 @@
     document.getElementById('prevPageButton').addEventListener('click', prevPage);
     document.getElementById('nextPageButton').addEventListener('click', nextPage);
     document.getElementById('exportInventoryButton').addEventListener('click', showExportInventoryConfirmation);
-    document.getElementById('importTransactionsButton').addEventListener('click', showImportConfirmation);
+    checkImportButton();
     document.getElementById('exportDataButton').addEventListener('click', showExportDataConfirmation);
     document.getElementById('clearAllButton').addEventListener('click', showClearAllConfirmation);
+
+    function checkImportButton() {
+      const importButton = document.getElementById('importTransactionsButton');
+      importButton.disabled = !document.getElementById('importTransactions').value;
+      importButton.addEventListener('click', showImportConfirmation);
+    }
+
+    document.getElementById('importTransactions').addEventListener('change', checkImportButton);
 
     loadData();
   </script>
