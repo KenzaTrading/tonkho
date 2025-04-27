@@ -246,12 +246,26 @@
       }
 
       getRecentCodes() {
-        const sortedTransactions = this.transactions
+        // Tạo danh sách mã vải với thời gian giao dịch mới nhất
+        const codeLatestDate = {};
+        this.transactions
           .filter(t => t.date && t.code && this.parseDate(t.date))
-          .sort((a, b) => this.parseDate(b.date) - this.parseDate(a.date));
-        const recentCodes = [...new Set(sortedTransactions.map(t => t.code))].slice(0, 5);
-        console.log('Recent codes:', recentCodes);
-        return recentCodes;
+          .forEach(t => {
+            const date = this.parseDate(t.date);
+            if (!codeLatestDate[t.code] || date > codeLatestDate[t.code].date) {
+              codeLatestDate[t.code] = { date, code: t.code };
+            }
+          });
+
+        // Chuyển thành mảng và sắp xếp theo thời gian giảm dần
+        const sortedCodes = Object.values(codeLatestDate)
+          .sort((a, b) => b.date - a.date)
+          .slice(0, 5)
+          .map(item => item.code);
+
+        console.log('Recent codes with latest dates:', codeLatestDate);
+        console.log('Sorted recent codes:', sortedCodes);
+        return sortedCodes;
       }
 
       getFilteredTransactions() {
