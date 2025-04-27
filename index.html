@@ -14,27 +14,16 @@
     .nav-link.active { background-color: #e0e7ff; color: #0d6efd; border-radius: 8px 8px 0 0; }
     .tab-content { padding: 20px; background: #fff; border-radius: 0 0 10px 10px; }
     #output { margin-top: 15px; padding: 10px; background-color: #e9ecef; border-radius: 5px; font-size: 0.9em; }
-    .table-container { max-height: 400px; overflow-y: auto; margin-top: 15px; }
-    .table { font-size: 0.9em; }
-    .table th, .table td { vertical-align: middle; }
-    .table .total-row { font-weight: bold; background-color: #f8f9fa; }
     .btn { border-radius: 5px; font-size: 0.9em; padding: 10px 20px; }
     .form-control, .form-select { font-size: 0.9em; border-radius: 5px; }
-    .form-section, .filter-section { margin-bottom: 25px; }
-    .action-btn { padding: 6px 12px; font-size: 0.85em; }
-    .manage-data-btns { display: flex; gap: 10px; align-items: center; }
+    .form-section { margin-bottom: 25px; }
     @media (max-width: 576px) {
       body { padding: 10px; }
       .nav-link { padding: 8px 15px; font-size: 0.9em; }
       .tab-content { padding: 15px; }
       .btn { width: 100%; margin-bottom: 10px; padding: 12px; font-size: 1em; }
-      .action-btn { padding: 8px 14px; font-size: 0.9em; }
-      .form-section h5, .filter-section h5 { font-size: 1em; }
-      .table { font-size: 0.8em; }
+      .form-section h5 { font-size: 1em; }
       .row.g-3 > div { margin-bottom: 10px; }
-      .filter-section .col-12, .filter-section .col-md-6 { margin-bottom: 10px; }
-      .manage-data-btns { flex-direction: column; align-items: stretch; }
-      .form-section input[type="file"] { margin-bottom: 10px; }
     }
   </style>
 </head>
@@ -47,7 +36,7 @@
           <button class="nav-link active" id="input-tab" data-bs-toggle="tab" data-bs-target="#input">Nhập liệu</button>
         </li>
         <li class="nav-item">
-          <button class="nav-link" id="inventory-tab" data-bs-toggle="tab" data-bs-target="#inventory-tab-content">Tồn kho</button>
+          <button class="nav-link" id="inventory-tab" data-bs-toggle="tab" data-bs-target="#inventory">Tồn kho</button>
         </li>
         <li class="nav-item">
           <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history">Lịch sử giao dịch</button>
@@ -88,95 +77,15 @@
             <button class="btn btn-primary mt-3" id="processFormButton">Thực hiện</button>
           </div>
           <div id="output" class="text-center">Kết quả sẽ hiển thị ở đây...</div>
-          <h2 class="mt-4" style="font-size: 1.2em;">Cập nhật 5 mã gần nhất</h2>
-          <table class="table table-bordered">
-            <thead><tr><th>Mã vải</th><th>Số cây</th><th>Số mét</th></tr></thead>
-            <tbody id="recent-inventory"></tbody>
-          </table>
         </div>
-        <div class="tab-pane fade" id="inventory-tab-content">
-          <div class="filter-section">
-            <h5>Lọc tồn kho</h5>
-            <div class="row g-3">
-              <div class="col-md-6 col-12">
-                <label for="searchFabricType" class="form-label">Mã loại vải:</label>
-                <select class="form-select" id="searchFabricType">
-                  <option value="">Tất cả loại vải</option>
-                </select>
-              </div>
-              <div class="col-md-6 col-12">
-                <label for="searchColor" class="form-label">Mã màu:</label>
-                <select class="form-select" id="searchColor">
-                  <option value="">Tất cả màu</option>
-                </select>
-              </div>
-              <div class="col-md-12 col-12 d-flex align-items-end">
-                <button class="btn btn-primary" id="applyInventoryFilterButton">Thực hiện</button>
-              </div>
-            </div>
-          </div>
-          <h2 class="mt-2" style="font-size: 1.2em;">Tồn kho</h2>
-          <div class="table-container">
-            <table class="table table-bordered">
-              <thead><tr><th>Mã vải</th><th>Số cây</th><th>Số mét</th><th>Hành động</th></tr></thead>
-              <tbody id="inventory"></tbody>
-              <tfoot id="inventory-total" class="total-row"></tfoot>
-            </table>
-          </div>
+        <div class="tab-pane fade" id="inventory">
+          <p>Chức năng tồn kho sẽ được thêm ở bước tiếp theo.</p>
         </div>
         <div class="tab-pane fade" id="history">
-          <div class="filter-section">
-            <h5>Lọc giao dịch</h5>
-            <div class="row g-3">
-              <div class="col-md-3 col-12">
-                <label for="filterCode" class="form-label">Mã vải:</label>
-                <select class="form-select" id="filterCode">
-                  <option value="">Tất cả mã</option>
-                </select>
-              </div>
-              <div class="col-md-3 col-12">
-                <label for="filterStartDate" class="form-label">Từ ngày:</label>
-                <input type="date" class="form-control" id="filterStartDate">
-              </div>
-              <div class="col-md-3 col-12">
-                <label for="filterEndDate" class="form-label">Đến ngày:</label>
-                <input type="date" class="form-control" id="filterEndDate">
-              </div>
-              <div class="col-md-3 col-12 d-flex align-items-end gap-2">
-                <button class="btn btn-primary" id="applyFilterButton">Thực hiện</button>
-                <button class="btn btn-secondary" id="clearHistoryFilterButton">Xóa bộ lọc</button>
-              </div>
-            </div>
-          </div>
-          <h2 class="mt-2" style="font-size: 1.2em;">Lịch sử giao dịch</h2>
-          <table class="table table-bordered">
-            <thead><tr><th>Ngày</th><th>Loại</th><th>Mã vải</th><th>Số cây</th><th>Số mét</th><th>Tồn kho (cây)</th><th>Tồn kho (mét)</th><th>Hành động</th></tr></thead>
-            <tbody id="transactions"></tbody>
-          </table>
-          <div class="pagination-section">
-            <button class="btn btn-outline-primary pagination-btn" id="prevPageButton" disabled>Trước</button>
-            <span id="pageInfo">Trang 1/1</span>
-            <button class="btn btn-outline-primary pagination-btn" id="nextPageButton" disabled>Sau</button>
-          </div>
+          <p>Chức năng lịch sử giao dịch sẽ được thêm ở bước tiếp theo.</p>
         </div>
         <div class="tab-pane fade" id="manage">
-          <div class="form-section">
-            <h5>Xuất dữ liệu tồn kho</h5>
-            <button class="btn btn-primary" id="exportInventoryButton">Thực hiện</button>
-          </div>
-          <div class="form-section">
-            <h5>Nhập dữ liệu giao dịch</h5>
-            <input type="file" class="form-control mb-2" id="importTransactions" accept=".csv">
-            <button class="btn btn-primary" id="importTransactionsButton">Thực hiện</button>
-          </div>
-          <div class="form-section">
-            <h5>Xuất dữ liệu giao dịch</h5>
-            <button class="btn btn-primary" id="exportDataButton">Thực hiện</button>
-          </div>
-          <div class="form-section">
-            <h5>Xóa toàn bộ dữ liệu</h5>
-            <button class="btn btn-danger" id="clearAllButton">Thực hiện</button>
-          </div>
+          <p>Chức năng quản lý dữ liệu sẽ được thêm ở bước tiếp theo.</p>
         </div>
       </div>
     </div>
@@ -196,135 +105,106 @@
       </div>
     </div>
   </div>
-  <div class="modal fade" id="editModal">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Chỉnh sửa giao dịch</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="editType" class="form-label">Loại lệnh:</label>
-            <select class="form-select" id="editType">
-              <option value="n">Nhập</option>
-              <option value="x">Xuất</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="editCode" class="form-label">Mã vải:</label>
-            <input type="text" class="form-control" id="editCode" placeholder="VD: 950002">
-          </div>
-          <div class="mb-3">
-            <label for="editTrees" class="form-label">Số cây:</label>
-            <input type="number" min="0" step="1" class="form-control" id="editTrees" value="0">
-          </div>
-          <div class="mb-3">
-            <label for="editMeters" class="form-label">Số mét:</label>
-            <input type="number" step="0.1" class="form-control" id="editMeters" value="0.0">
-          </div>
-          <div class="mb-3">
-            <label for="editDate" class="form-label">Ngày:</label>
-            <input type="date" class="form-control" id="editDate">
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-          <button type="button" class="btn btn-primary" id="saveEditButton">Lưu</button>
-        </div>
-      </div>
-    </div>
-  </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    let inventory = {};
-    let transactions = [];
-    let activeInputs = [];
-    let inputIdCounter = 1;
-    let currentFilter = { code: '', startDate: '', endDate: '' };
-    let currentPage = 1;
-    const itemsPerPage = 10;
-    const today = new Date().toISOString().split('T')[0];
+    class InventoryManager {
+      constructor() {
+        this.inventory = {};
+        this.transactions = [];
+        this.today = new Date().toISOString().split('T')[0];
+      }
 
-    document.getElementById('formDate').value = today;
-    document.getElementById('input-tab').addEventListener('shown.bs.tab', () => document.getElementById('formCode').focus());
-
-    const showOutput = (msg) => document.getElementById('output').textContent = msg;
-
-    const parseDate = (dateStr) => {
-      if (!dateStr) return null;
-      let date;
-      if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-        date = new Date(dateStr);
-      } else if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
-        const [day, month, year] = dateStr.split('/').map(Number);
-        date = new Date(year, month - 1, day);
-      } else {
+      validateTransaction(code, trees, meters) {
+        if (!/^\w{6}$/.test(code)) return 'Mã vải phải có đúng 6 ký tự!';
+        if (isNaN(trees) || trees < 0 || isNaN(meters) || meters < 0) return 'Số cây và số mét phải hợp lệ!';
+        if (trees === 0 && meters !== 0) return 'Nếu số cây là 0, số mét phải là 0!';
+        const decimalPart = meters.toString().split('.')[1];
+        if (decimalPart && decimalPart.length > 1) return 'Số mét chỉ được có 1 chữ số thập phân!';
         return null;
       }
-      return isNaN(date) ? null : date;
-    };
 
-    const formatDate = (dateStr) => {
-      const date = parseDate(dateStr);
-      return date ? date.toLocaleDateString('vi-VN') : '';
-    };
-
-    const validateTransaction = (code, trees, meters) => {
-      if (!/^\w{6}$/.test(code)) return 'Mã vải phải có đúng 6 ký tự!';
-      if (isNaN(trees) || trees < 0 || isNaN(meters) || meters < 0) return 'Số cây và số mét phải hợp lệ!';
-      if (trees === 0 && meters !== 0) return 'Nếu số cây là 0, số mét phải là 0!';
-      const decimalPart = meters.toString().split('.')[1];
-      if (decimalPart && decimalPart.length > 1) return 'Số mét chỉ được có 1 chữ số thập phân!';
-      return null;
-    };
-
-    const saveData = () => {
-      try {
-        localStorage.setItem('inventory', JSON.stringify(inventory));
-        localStorage.setItem('transactions', JSON.stringify(transactions));
-        localStorage.setItem('activeInputs', JSON.stringify(activeInputs));
-        localStorage.setItem('inputIdCounter', inputIdCounter);
-      } catch (error) {
-        console.error('Lỗi lưu dữ liệu:', error);
-        showOutput('Lỗi lưu dữ liệu!');
-      }
-    };
-
-    const loadData = () => {
-      try {
-        inventory = JSON.parse(localStorage.getItem('inventory') || '{}');
-        transactions = JSON.parse(localStorage.getItem('transactions') || '[]')
-          .filter(t => t.date && t.code && parseDate(t.date) && t.type && t.trees >= 0 && t.meters >= 0);
-        activeInputs = JSON.parse(localStorage.getItem('activeInputs') || '[]')
-          .filter(t => t.id && t.code && t.date && parseDate(t.date) && t.trees >= 0 && t.meters >= 0);
-        inputIdCounter = parseInt(localStorage.getItem('inputIdCounter') || '1');
-        console.log('Loaded transactions:', transactions);
-        console.log('Loaded activeInputs:', activeInputs);
-        recalculateInventory();
-        updateUI();
-      } catch (error) {
-        console.error('Lỗi tải dữ liệu:', error);
-        showOutput('Lỗi tải dữ liệu!');
-      }
-    };
-
-    const recalculateInventory = () => {
-      inventory = {};
-      activeInputs.forEach(({ code, trees, meters }) => {
-        if (code && trees >= 0 && meters >= 0) {
-          inventory[code] = inventory[code] || { trees: 0, meters: 0 };
-          inventory[code].trees += trees;
-          inventory[code].meters += meters;
+      parseDate(dateStr) {
+        if (!dateStr) return null;
+        let date;
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+          date = new Date(dateStr);
+        } else if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+          const [day, month, year] = dateStr.split('/').map(Number);
+          date = new Date(year, month - 1, day);
+        } else {
+          return null;
         }
-      });
-      transactions.forEach(t => {
-        if (t.code) {
-          inventory[t.code] = inventory[t.code] || { trees: 0, meters: 0 };
+        return isNaN(date) ? null : date;
+      }
+
+      formatDate(dateStr) {
+        const date = this.parseDate(dateStr);
+        return date ? date.toLocaleDateString('vi-VN') : '';
+      }
+
+      addTransaction(type, code, trees, meters, date) {
+        const formattedCode = code.slice(0, 3) + '-' + code.slice(3);
+        const formattedMeters = parseFloat(meters.toFixed(1));
+        const formattedDate = this.formatDate(date);
+        if (!formattedDate) return { success: false, error: 'Ngày không hợp lệ!' };
+
+        let stockTrees = this.inventory[formattedCode]?.trees || 0;
+        let stockMeters = this.inventory[formattedCode]?.meters || 0;
+
+        if (type === 'x' && (stockTrees < trees || stockMeters < meters)) {
+          return { success: false, error: `Không đủ tồn kho mã ${formattedCode}. Tồn kho: ${stockTrees} cây, ${stockMeters.toFixed(1)} mét.` };
         }
-      });
-      console.log('Inventory recalculated:', inventory);
-    };
+
+        if (type === 'n') {
+          stockTrees += trees;
+          stockMeters += formattedMeters;
+        } else {
+          stockTrees -= trees;
+          stockMeters -= formattedMeters;
+        }
+
+        const transaction = {
+          date: formattedDate,
+          type,
+          displayType: type === 'n' ? 'nhập' : 'xuất',
+          code: formattedCode,
+          trees,
+          meters: formattedMeters,
+          stockTrees,
+          stockMeters
+        };
+
+        this.transactions.push(transaction);
+        this.inventory[formattedCode] = { trees: stockTrees, meters: stockMeters };
+        return { success: true, transaction };
+      }
+
+      saveData() {
+        try {
+          localStorage.setItem('inventory', JSON.stringify(this.inventory));
+          localStorage.setItem('transactions', JSON.stringify(this.transactions));
+          console.log('Saved data:', { inventory: this.inventory, transactions: this.transactions });
+        } catch (error) {
+          console.error('Lỗi lưu dữ liệu:', error);
+          return false;
+        }
+        return true;
+      }
+
+      loadData() {
+        try {
+          this.inventory = JSON.parse(localStorage.getItem('inventory') || '{}');
+          this.transactions = JSON.parse(localStorage.getItem('transactions') || '[]')
+            .filter(t => t.date && t.code && this.parseDate(t.date) && t.type && t.trees >= 0 && t.meters >= 0);
+          console.log('Loaded data:', { inventory: this.inventory, transactions: this.transactions });
+        } catch (error) {
+          console.error('Lỗi tải dữ liệu:', error);
+        }
+      }
+    }
+
+    const inventoryManager = new InventoryManager();
+    const showOutput = (msg) => document.getElementById('output').textContent = msg;
 
     const showConfirmation = (message, callback) => {
       document.getElementById('confirmationMessage').textContent = message;
@@ -339,532 +219,38 @@
       });
     };
 
-    const updateRecentInventory = () => {
-      const recentInventoryBody = document.getElementById('recent-inventory');
-      if (!recentInventoryBody) {
-        console.error('Element recent-inventory not found');
-        showOutput('Lỗi hiển thị 5 mã gần nhất!');
-        return;
-      }
-      const sortedTransactions = transactions
-        .filter(t => t.date && t.code && parseDate(t.date))
-        .sort((a, b) => parseDate(b.date) - parseDate(a.date));
-      const recentCodes = [...new Set(sortedTransactions.map(t => t.code))].slice(0, 5);
-      console.log('Updating recent inventory:', { transactions: transactions.length, sortedTransactions: sortedTransactions.length, recentCodes });
-      recentInventoryBody.innerHTML = recentCodes.length === 0
-        ? '<tr><td colspan="3" class="text-center">Chưa có giao dịch</td></tr>'
-        : recentCodes.map(code => {
-            const { trees = 0, meters = 0 } = inventory[code] || {};
-            return `<tr><td>${code}</td><td>${trees}</td><td>${meters.toFixed(1)} m</td></tr>`;
-          }).join('');
-    };
-
-    const updateInventoryTable = () => {
-      const inventoryBody = document.getElementById('inventory');
-      const inventoryTotal = document.getElementById('inventory-total');
-      const fabricType = document.getElementById('searchFabricType').value;
-      const color = document.getElementById('searchColor').value;
-      let totalTrees = 0, totalMeters = 0;
-      const filteredCodes = Object.keys(inventory).filter(code =>
-        (!fabricType || code.startsWith(fabricType + '-')) && (!color || code.endsWith('-' + color))
-      );
-      inventoryBody.innerHTML = filteredCodes.map(code => {
-        const { trees, meters } = inventory[code];
-        totalTrees += trees;
-        totalMeters += meters;
-        return `<tr>
-          <td>${code}</td>
-          <td>${trees}</td>
-          <td>${meters.toFixed(1)} m</td>
-          <td><button class="btn btn-sm btn-primary action-btn export-btn" data-code="${code}" data-trees="${trees}" data-meters="${meters}" ${trees === 0 && meters === 0 ? 'disabled' : ''}>Xuất</button></td>
-        </tr>`;
-      }).join('');
-      inventoryTotal.innerHTML = filteredCodes.length > 0
-        ? `<tr class="total-row"><td>Tổng</td><td>${totalTrees}</td><td>${totalMeters.toFixed(1)} m</td><td></td></tr>`
-        : '';
-      document.querySelectorAll('.export-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const code = btn.getAttribute('data-code');
-          const trees = parseInt(btn.getAttribute('data-trees'));
-          const meters = parseFloat(btn.getAttribute('data-meters'));
-          bootstrap.Tab.getOrCreateInstance(document.getElementById('input-tab')).show();
-          document.getElementById('formType').value = 'x';
-          document.getElementById('formCode').value = code.replace('-', '');
-          document.getElementById('formTrees').value = trees;
-          document.getElementById('formMeters').value = meters.toFixed(1);
-        });
-      });
-    };
-
-    const updateHistoryTable = () => {
-      const transactionsBody = document.getElementById('transactions');
-      if (!transactionsBody) {
-        console.error('Element transactions not found');
-        showOutput('Lỗi hiển thị lịch sử giao dịch!');
-        return;
-      }
-      const filteredTransactions = transactions.filter(t => {
-        const date = parseDate(t.date);
-        if (!date || !t.code) return false;
-        const startDate = currentFilter.startDate ? parseDate(formatDate(currentFilter.startDate)) : null;
-        const endDate = currentFilter.endDate ? parseDate(formatDate(currentFilter.endDate)) : null;
-        return (
-          (!currentFilter.code || t.code === currentFilter.code) &&
-          (!startDate || date >= startDate) &&
-          (!endDate || date <= endDate)
-        );
-      });
-      console.log('Updating history table:', { transactions: transactions.length, filteredTransactions: filteredTransactions.length });
-      const totalPages = Math.max(1, Math.ceil(filteredTransactions.length / itemsPerPage));
-      currentPage = Math.min(currentPage, totalPages);
-      const start = (currentPage - 1) * itemsPerPage;
-      const pageTransactions = filteredTransactions.slice(start, start + itemsPerPage);
-      transactionsBody.innerHTML = pageTransactions.length === 0
-        ? '<tr><td colspan="8" class="text-center">Không có giao dịch</td></tr>'
-        : pageTransactions.map((t, i) => `
-            <tr>
-              <td>${t.date}</td>
-              <td>${t.displayType}</td>
-              <td>${t.code}</td>
-              <td>${t.trees}</td>
-              <td>${t.meters.toFixed(1)} m</td>
-              <td>${t.stockTrees}</td>
-              <td>${t.stockMeters.toFixed(1)} m</td>
-              <td>
-                <button class="btn btn-sm btn-warning action-btn edit-btn" data-index="${start + i}">Sửa</button>
-                <button class="btn btn-sm btn-danger action-btn delete-btn" data-index="${start + i}">Xóa</button>
-              </td>
-            </tr>`).join('');
-      document.getElementById('pageInfo').textContent = `Trang ${currentPage}/${totalPages}`;
-      document.getElementById('prevPageButton').disabled = currentPage === 1;
-      document.getElementById('nextPageButton').disabled = currentPage === totalPages;
-      document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', () => editTransaction(parseInt(btn.getAttribute('data-index')))));
-      document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', () => deleteTransaction(parseInt(btn.getAttribute('data-index')))));
-    };
-
-    const updateDropdowns = () => {
-      const fabricTypeSelect = document.getElementById('searchFabricType');
-      const colorSelect = document.getElementById('searchColor');
-      const filterSelect = document.getElementById('filterCode');
-      const fabricTypes = [...new Set(Object.keys(inventory).map(code => code.split('-')[0]))].sort();
-      const colors = [...new Set(Object.keys(inventory).map(code => code.split('-')[1]))].sort();
-      const codes = [...new Set(transactions.map(t => t.code))].sort();
-      fabricTypeSelect.innerHTML = '<option value="">Tất cả loại vải</option>' + fabricTypes.map(type => `<option value="${type}">${type}</option>`).join('');
-      colorSelect.innerHTML = '<option value="">Tất cả màu</option>' + colors.map(color => `<option value="${color}">${color}</option>`).join('');
-      filterSelect.innerHTML = '<option value="">Tất cả mã</option>' + codes.map(code => `<option value="${code}">${code}</option>`).join('');
-    };
-
-    const updateUI = () => {
-      console.log('Updating UI:', { transactions: transactions.length, inventory: Object.keys(inventory).length });
-      updateRecentInventory();
-      updateInventoryTable();
-      updateHistoryTable();
-      updateDropdowns();
-    };
-
-    const processOutputTransaction = (code, trees, meters) => {
-      if (trees === 0 && meters === 0) return true;
-      if ((inventory[code]?.trees || 0) < trees || (inventory[code]?.meters || 0) < meters) {
-        showOutput(`Không đủ tồn kho mã ${code}. Tồn kho: ${inventory[code]?.trees || 0} cây, ${(inventory[code]?.meters || 0).toFixed(1)} mét.`);
-        return false;
-      }
-      let remainingTrees = trees, remainingMeters = meters;
-      const matchingInputs = activeInputs.filter(t => t.code === code && t.trees > 0).sort((a, b) => parseDate(b.date) - parseDate(a.date));
-      const updatedInputs = [...activeInputs];
-      let valid = false;
-      for (let input of matchingInputs) {
-        if (remainingTrees <= 0 || remainingMeters <= 0) break;
-        const inputIndex = updatedInputs.findIndex(t => t.id === input.id);
-        const metersPerTree = input.meters / input.trees;
-        if (metersPerTree === meters / trees) {
-          const treesToDeduct = Math.min(remainingTrees, input.trees);
-          const metersToDeduct = treesToDeduct * metersPerTree;
-          updatedInputs[inputIndex].trees -= treesToDeduct;
-          updatedInputs[inputIndex].meters -= metersToDeduct;
-          remainingTrees -= treesToDeduct;
-          remainingMeters -= metersToDeduct;
-          valid = true;
-        }
-      }
-      if (!valid || remainingTrees > 0 || remainingMeters > 0) {
-        showOutput(`Không tìm thấy giao dịch nhập phù hợp cho ${trees} cây, ${meters.toFixed(1)} mét mã ${code}.`);
-        return false;
-      }
-      activeInputs = updatedInputs.filter(t => t.trees > 0);
-      return true;
-    };
-
     const processFormCommand = () => {
       const type = document.getElementById('formType').value;
       const code = document.getElementById('formCode').value.trim().toUpperCase();
       const trees = parseInt(document.getElementById('formTrees').value);
       const meters = parseFloat(document.getElementById('formMeters').value);
-      const date = document.getElementById('formDate').value || today;
+      const date = document.getElementById('formDate').value || inventoryManager.today;
 
-      const error = validateTransaction(code, trees, meters);
+      const error = inventoryManager.validateTransaction(code, trees, meters);
       if (error) return showOutput(error);
 
       const formattedCode = code.slice(0, 3) + '-' + code.slice(3);
       const formattedMeters = parseFloat(meters.toFixed(1));
-      const formattedDate = formatDate(date);
-      if (!formattedDate) return showOutput('Ngày không hợp lệ!');
+      const formattedDate = inventoryManager.formatDate(date);
 
-      let stockTrees = (inventory[formattedCode]?.trees || 0);
-      let stockMeters = (inventory[formattedCode]?.meters || 0);
-
-      const transaction = {
-        date: formattedDate,
-        type,
-        displayType: type === 'n' ? 'nhập' : 'xuất',
-        code: formattedCode,
-        trees,
-        meters: formattedMeters,
-        stockTrees,
-        stockMeters
-      };
-
-      if (type === 'n') {
-        stockTrees += trees;
-        stockMeters += formattedMeters;
-        transaction.stockTrees = stockTrees;
-        transaction.stockMeters = stockMeters;
-        showConfirmation(`Xác nhận nhập mã ${formattedCode} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}? Tồn kho: ${stockTrees} cây, ${stockMeters.toFixed(1)} mét.`, () => {
-          if (trees > 0 || formattedMeters > 0) {
-            activeInputs.push({ id: inputIdCounter++, date: formattedDate, code: formattedCode, trees, meters: formattedMeters });
-          }
-          inventory[formattedCode] = { trees: stockTrees, meters: stockMeters };
-          transactions.push(transaction);
-          saveData();
-          updateUI();
+      showConfirmation(
+        `Xác nhận ${type === 'n' ? 'nhập' : 'xuất'} mã ${formattedCode} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}?`,
+        () => {
+          const result = inventoryManager.addTransaction(type, code, trees, meters, date);
+          if (!result.success) return showOutput(result.error);
+          if (!inventoryManager.saveData()) return showOutput('Lỗi lưu dữ liệu!');
           showOutput('Đã cập nhật thành công!');
           document.getElementById('formCode').value = '';
           document.getElementById('formTrees').value = '0';
           document.getElementById('formMeters').value = '0.0';
-        });
-      } else {
-        if (!processOutputTransaction(formattedCode, trees, formattedMeters)) return;
-        stockTrees -= trees;
-        stockMeters -= formattedMeters;
-        transaction.stockTrees = stockTrees;
-        transaction.stockMeters = stockMeters;
-        showConfirmation(`Xác nhận xuất mã ${formattedCode} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}? Tồn kho: ${stockTrees} cây, ${stockMeters.toFixed(1)} mét.`, () => {
-          inventory[formattedCode] = { trees: stockTrees, meters: stockMeters };
-          transactions.push(transaction);
-          saveData();
-          updateUI();
-          showOutput('Đã cập nhật thành công!');
-          document.getElementById('formCode').value = '';
-          document.getElementById('formTrees').value = '0';
-          document.getElementById('formMeters').value = '0.0';
-        });
-      }
-    };
-
-    const deleteTransaction = (index) => {
-      showConfirmation('Bạn có chắc muốn xóa giao dịch này?', () => {
-        const transaction = transactions[index];
-        if (transaction.type === 'n') {
-          activeInputs = activeInputs.filter(t => !(t.code === transaction.code && t.trees === transaction.trees && t.meters === transaction.meters && t.date === transaction.date));
-        } else if (transaction.type === 'x' && (transaction.trees > 0 || transaction.meters > 0)) {
-          let treesToRestore = transaction.trees, metersToRestore = transaction.meters;
-          transactions.slice(0, index).reverse()
-            .filter(t => t.type === 'n' && t.code === transaction.code)
-            .some(input => {
-              if (treesToRestore <= 0 || metersToRestore <= 0) return true;
-              const metersPerTree = input.meters / input.trees;
-              if (metersPerTree === metersToRestore / treesToRestore) {
-                activeInputs.push({ id: inputIdCounter++, date: input.date, code: input.code, trees: input.trees, meters: input.meters });
-                treesToRestore -= input.trees;
-                metersToRestore -= input.meters;
-              }
-            });
         }
-        transactions.splice(index, 1);
-        recalculateInventory();
-        saveData();
-        updateUI();
-        showOutput('Đã xóa giao dịch!');
-      });
+      );
     };
 
-    const editTransaction = (index) => {
-      const t = transactions[index];
-      if (!t) return showOutput('Giao dịch không hợp lệ!');
-      document.getElementById('editType').value = t.type;
-      document.getElementById('editCode').value = t.code.replace('-', '');
-      document.getElementById('editMeters').value = t.meters.toFixed(1);
-      document.getElementById('editTrees').value = t.trees;
-      const [day, month, year] = t.date.split('/');
-      document.getElementById('editDate').value = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-      bootstrap.Modal.getOrCreateInstance(document.getElementById('editModal')).show();
-      document.getElementById('saveEditButton').onclick = () => saveEditTransaction(index);
-    };
-
-    const saveEditTransaction = (index) => {
-      const type = document.getElementById('editType').value;
-      const code = document.getElementById('editCode').value.trim().toUpperCase();
-      const trees = parseInt(document.getElementById('editTrees').value);
-      const meters = parseFloat(document.getElementById('editMeters').value);
-      const date = document.getElementById('editDate').value;
-
-      const error = validateTransaction(code, trees, meters);
-      if (error) return showOutput(error);
-
-      const formattedCode = code.slice(0, 3) + '-' + code.slice(3);
-      const formattedMeters = parseFloat(meters.toFixed(1));
-      const formattedDate = formatDate(date);
-      if (!formattedDate) return showOutput('Ngày không hợp lệ!');
-
-      const oldTransaction = transactions[index];
-      if (oldTransaction.type === 'n') {
-        activeInputs = activeInputs.filter(t => !(t.code === oldTransaction.code && t.trees === oldTransaction.trees && t.meters === oldTransaction.meters && t.date === oldTransaction.date));
-      } else if (oldTransaction.type === 'x' && (oldTransaction.trees > 0 || oldTransaction.meters > 0)) {
-        let treesToRestore = oldTransaction.trees, metersToRestore = oldTransaction.meters;
-        transactions.slice(0, index).reverse()
-          .filter(t => t.type === 'n' && t.code === oldTransaction.code)
-          .some(input => {
-            if (treesToRestore <= 0 || metersToRestore <= 0) return true;
-            const metersPerTree = input.meters / input.trees;
-            if (metersPerTree === metersToRestore / treesToRestore) {
-              activeInputs.push({ id: inputIdCounter++, date: input.date, code: input.code, trees: input.trees, meters: input.meters });
-              treesToRestore -= input.trees;
-              metersToRestore -= input.meters;
-            }
-          });
-      }
-
-      if (type === 'n' && (trees > 0 || formattedMeters > 0)) {
-        activeInputs.push({ id: inputIdCounter++, date: formattedDate, code: formattedCode, trees, meters: formattedMeters });
-      } else if (type === 'x' && (trees > 0 || formattedMeters > 0)) {
-        recalculateInventory();
-        if (!processOutputTransaction(formattedCode, trees, formattedMeters)) return;
-      }
-
-      recalculateInventory();
-      transactions[index] = {
-        date: formattedDate,
-        type,
-        displayType: type === 'n' ? 'nhập' : 'xuất',
-        code: formattedCode,
-        trees,
-        meters: formattedMeters,
-        stockTrees: inventory[formattedCode]?.trees || 0,
-        stockMeters: inventory[formattedCode]?.meters || 0
-      };
-
-      saveData();
-      updateUI();
-      bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
-      showOutput('Đã chỉnh sửa giao dịch!');
-    };
-
-    const applyInventoryFilter = () => updateUI();
-
-    const applyFilter = () => {
-      currentFilter.code = document.getElementById('filterCode').value;
-      currentFilter.startDate = document.getElementById('filterStartDate').value;
-      currentFilter.endDate = document.getElementById('filterEndDate').value;
-      currentPage = 1;
-      updateUI();
-    };
-
-    const clearHistoryFilter = () => {
-      document.getElementById('filterCode').value = '';
-      document.getElementById('filterStartDate').value = '';
-      document.getElementById('filterEndDate').value = '';
-      currentFilter = { code: '', startDate: '', endDate: '' };
-      currentPage = 1;
-      updateUI();
-    };
-
-    const prevPage = () => {
-      if (currentPage > 1) {
-        currentPage--;
-        updateUI();
-      }
-    };
-
-    const nextPage = () => {
-      const filteredTransactions = transactions.filter(t => {
-        const date = parseDate(t.date);
-        if (!date || !t.code) return false;
-        const startDate = currentFilter.startDate ? parseDate(formatDate(currentFilter.startDate)) : null;
-        const endDate = currentFilter.endDate ? parseDate(formatDate(currentFilter.endDate)) : null;
-        return (
-          (!currentFilter.code || t.code === currentFilter.code) &&
-          (!startDate || date >= startDate) &&
-          (!endDate || date <= endDate)
-        );
-      });
-      const totalPages = Math.max(1, Math.ceil(filteredTransactions.length / itemsPerPage));
-      if (currentPage < totalPages) {
-        currentPage++;
-        updateUI();
-      }
-    };
-
-    const exportCSV = (filename, headers, rows) => {
-      const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
-      const BOM = '\uFEFF';
-      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(url);
-    };
-
-    const showExportInventoryConfirmation = () => {
-      showConfirmation('Xác nhận xuất dữ liệu tồn kho?', () => {
-        const headers = ['Mã vải', 'Số cây', 'Số mét'];
-        const rows = Object.keys(inventory).map(code => [`"${code}"`, inventory[code].trees, inventory[code].meters.toFixed(1)]);
-        exportCSV(`tonkho_${new Date().toISOString().split('T')[0].replace(/-/g, '')}.csv`, headers, rows);
-        showOutput('Đã xuất dữ liệu tồn kho!');
-      });
-    };
-
-    const showImportConfirmation = () => {
-      const fileInput = document.getElementById('importTransactions');
-      const file = fileInput.files[0];
-      if (!file || !file.name.endsWith('.csv')) return showOutput('Vui lòng chọn file CSV!');
-      showConfirmation('Import sẽ ghi đè dữ liệu hiện tại. Bạn có chắc muốn tiếp tục?', () => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          try {
-            const lines = reader.result.split('\n').map(line => {
-              const values = [];
-              let current = '', inQuotes = false;
-              for (let char of line) {
-                if (char === '"') inQuotes = !inQuotes;
-                else if (char === ',' && !inQuotes) {
-                  values.push(current.trim());
-                  current = '';
-                } else current += char;
-              }
-              values.push(current.trim());
-              return values;
-            });
-            if (lines.length < 1 || lines[0].length !== 5 || lines[0][0].toLowerCase() !== 'ngày' || lines[0][1].toLowerCase() !== 'loại') {
-              return showOutput('File CSV không hợp lệ! Đảm bảo có cột: Ngày,Loại,Mã vải,Số cây,Số mét.');
-            }
-            const newTransactions = [];
-            const newActiveInputs = [];
-            inputIdCounter = 1;
-            for (let i = 1; i < lines.length; i++) {
-              const [date, typeStr, code, trees, meters] = lines[i].map(v => v.replace(/^"|"$/g, '').trim());
-              if (!date && !typeStr && !code && !trees && !meters) continue;
-              if (!/^\d{2}\/\d{2}\/\d{4}$/.test(date)) return showOutput(`Lỗi dòng ${i + 1}: Ngày phải có định dạng DD/MM/YYYY`);
-              if (!['nhập', 'xuất'].includes(typeStr.toLowerCase())) return showOutput(`Lỗi dòng ${i + 1}: Loại phải là "nhập" hoặc "xuất"`);
-              if (!/^\w{3}-\w{3}$/.test(code)) return showOutput(`Lỗi dòng ${i + 1}: Mã vải không hợp lệ: ${code}`);
-              const parsedTrees = parseInt(trees), parsedMeters = parseFloat(meters);
-              if (isNaN(parsedTrees) || parsedTrees < 0) return showOutput(`Lỗi dòng ${i + 1}: Số cây không hợp lệ: ${trees}`);
-              if (isNaN(parsedMeters) || parsedMeters < 0) return showOutput(`Lỗi dòng ${i + 1}: Số mét không hợp lệ: ${meters}`);
-              const decimalPart = meters.toString().split('.')[1];
-              if (decimalPart && decimalPart.length > 1) return showOutput(`Lỗi dòng ${i + 1}: Số mét chỉ được có 1 chữ số thập phân`);
-            }
-            const sortedLines = lines.slice(1)
-              .filter(line => line[0] && line[1] && line[2] && line[3] && line[4])
-              .map(line => ({
-                date: line[0].replace(/^"|"$/g, ''),
-                typeStr: line[1].replace(/^"|"$/g, '').toLowerCase(),
-                code: line[2].replace(/^"|"$/g, ''),
-                trees: parseInt(line[3]),
-                meters: parseFloat(line[4])
-              }))
-              .sort((a, b) => parseDate(b.date) - parseDate(a.date));
-            for (let i = 0; i < sortedLines.length; i++) {
-              const { date, typeStr, code, trees, meters } = sortedLines[i];
-              const type = typeStr === 'nhập' ? 'n' : 'x';
-              const formattedMeters = parseFloat(meters.toFixed(1));
-              recalculateInventory();
-              let stockTrees = (inventory[code]?.trees || 0), stockMeters = (inventory[code]?.meters || 0);
-              if (type === 'n') {
-                if (trees > 0 || formattedMeters > 0) {
-                  newActiveInputs.push({ id: inputIdCounter++, date, code, trees, meters: formattedMeters });
-                }
-                stockTrees += trees;
-                stockMeters += formattedMeters;
-              } else if (!processOutputTransaction(code, trees, formattedMeters)) {
-                return showOutput(`Lỗi dòng ${i + 2}: Không đủ tồn kho hoặc giao dịch nhập không phù hợp cho mã ${code}.`);
-              } else {
-                stockTrees -= trees;
-                stockMeters -= formattedMeters;
-              }
-              newTransactions.push({
-                date,
-                type,
-                displayType: typeStr,
-                code,
-                trees,
-                meters: formattedMeters,
-                stockTrees,
-                stockMeters
-              });
-            }
-            if (newTransactions.length === 0) return showOutput('File CSV không chứa dữ liệu hợp lệ!');
-            transactions = newTransactions;
-            activeInputs = newActiveInputs.filter(t => t.trees > 0);
-            recalculateInventory();
-            saveData();
-            updateUI();
-            console.log('Imported transactions:', transactions);
-            console.log('Imported activeInputs:', activeInputs);
-            console.log('Updated inventory:', inventory);
-            showOutput('Đã import dữ liệu thành công!');
-            fileInput.value = '';
-          } catch (error) {
-            console.error('Lỗi đọc file CSV:', error);
-            showOutput('Lỗi đọc file CSV!');
-          }
-        };
-        reader.onerror = () => showOutput('Lỗi đọc file CSV!');
-        reader.readAsText(file);
-      });
-    };
-
-    const showExportDataConfirmation = () => {
-      showConfirmation('Xác nhận xuất dữ liệu giao dịch?', () => {
-        const headers = ['Ngày', 'Loại', 'Mã vải', 'Số cây', 'Số mét', 'Tồn kho (cây)', 'Tồn kho (mét)'];
-        const rows = transactions.map(t => [
-          `"${t.date}"`,
-          `"${t.displayType}"`,
-          `"${t.code}"`,
-          t.trees,
-          t.meters.toFixed(1),
-          t.stockTrees,
-          t.stockMeters.toFixed(1)
-        ]);
-        exportCSV(`tonkho_lichsu_${new Date().toISOString().split('T')[0].replace(/-/g, '')}.csv`, headers, rows);
-        showOutput('Đã xuất dữ liệu giao dịch!');
-      });
-    };
-
-    const showClearAllConfirmation = () => {
-      showConfirmation('Xóa toàn bộ dữ liệu? Hành động này không thể hoàn tác.', () => {
-        inventory = {};
-        transactions = [];
-        activeInputs = [];
-        inputIdCounter = 1;
-        currentPage = 1;
-        saveData();
-        updateUI();
-        showOutput('Đã xóa toàn bộ dữ liệu!');
-      });
-    };
-
+    document.getElementById('formDate').value = inventoryManager.today;
+    document.getElementById('input-tab').addEventListener('shown.bs.tab', () => document.getElementById('formCode').focus());
     document.getElementById('processFormButton').addEventListener('click', processFormCommand);
-    document.getElementById('applyInventoryFilterButton').addEventListener('click', applyInventoryFilter);
-    document.getElementById('applyFilterButton').addEventListener('click', applyFilter);
-    document.getElementById('clearHistoryFilterButton').addEventListener('click', clearHistoryFilter);
-    document.getElementById('prevPageButton').addEventListener('click', prevPage);
-    document.getElementById('nextPageButton').addEventListener('click', nextPage);
-    document.getElementById('exportInventoryButton').addEventListener('click', showExportInventoryConfirmation);
-    document.getElementById('importTransactionsButton').addEventListener('click', showImportConfirmation);
-    document.getElementById('exportDataButton').addEventListener('click', showExportDataConfirmation);
-    document.getElementById('clearAllButton').addEventListener('click', showClearAllConfirmation);
-
-    loadData();
+    inventoryManager.loadData();
   </script>
 </body>
 </html>
