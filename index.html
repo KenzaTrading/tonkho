@@ -22,6 +22,7 @@
     .form-section, .filter-section { margin-bottom: 25px; }
     .pagination-section { margin-top: 15px; display: flex; align-items: center; gap: 10px; }
     .pagination-btn { padding: 6px 12px; }
+    .action-btn { padding: 5px 10px; font-size: 0.85em; }
     @media (max-width: 576px) {
       body { padding: 10px; }
       .nav-link { padding: 8px 15px; font-size: 0.9em; }
@@ -32,6 +33,7 @@
       .row.g-3 > div { margin-bottom: 10px; }
       .filter-section .col-12, .filter-section .col-md-3 { margin-bottom: 10px; }
       .pagination-section { flex-direction: column; align-items: stretch; }
+      .action-btn { padding: 8px; font-size: 0.9em; }
     }
   </style>
 </head>
@@ -92,7 +94,33 @@
           </table>
         </div>
         <div class="tab-pane fade" id="inventory">
-          <p>Chức năng tồn kho sẽ được thêm ở bước tiếp theo.</p>
+          <div class="filter-section">
+            <h5>Lọc tồn kho</h5>
+            <div class="row g-3">
+              <div class="col-md-3 col-12">
+                <label for="filterFabricType" class="form-label">Loại vải:</label>
+                <select class="form-select" id="filterFabricType">
+                  <option value="">Tất cả loại vải</option>
+                </select>
+              </div>
+              <div class="col-md-3 col-12">
+                <label for="filterColor" class="form-label">Màu:</label>
+                <select class="form-select" id="filterColor">
+                  <option value="">Tất cả màu</option>
+                </select>
+              </div>
+              <div class="col-md-3 col-12 d-flex align-items-end">
+                <button class="btn btn-primary" id="applyInventoryFilterButton">Thực hiện</button>
+              </div>
+            </div>
+          </div>
+          <h2 class="mt-2" style="font-size: 1.2em;">Tồn kho</h2>
+          <div class="table-container">
+            <table class="table table-bordered">
+              <thead><tr><th>Mã vải</th><th>Số cây</th><th>Số mét</th><th>Hành động</th></tr></thead>
+              <tbody id="inventory-table"></tbody>
+            </table>
+          </div>
         </div>
         <div class="tab-pane fade" id="history">
           <div class="filter-section">
@@ -151,6 +179,38 @@
       </div>
     </div>
   </div>
+  <div class="modal fade" id="exportModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Xuất kho</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="exportCode" class="form-label">Mã vải:</label>
+            <input type="text" class="form-control" id="exportCode" readonly>
+          </div>
+          <div class="mb-3">
+            <label for="exportTrees" class="form-label">Số cây:</label>
+            <input type="number" min="0" step="1" class="form-control" id="exportTrees" value="0">
+          </div>
+          <div class="mb-3">
+            <label for="exportMeters" class="form-label">Số mét:</label>
+            <input type="number" step="0.1" class="form-control" id="exportMeters" value="0.0">
+          </div>
+          <div class="mb-3">
+            <label for="exportDate" class="form-label">Ngày:</label>
+            <input type="date" class="form-control" id="exportDate">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="button" class="btn btn-primary" id="confirmExportButton">Xác nhận</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     class InventoryManager {
@@ -159,9 +219,10 @@
         this.transactions = [];
         this.today = new Date().toISOString().split('T')[0];
         this.currentFilter = { code: '', startDate: '', endDate: '' };
+        this.filterInventory = { fabricType: '', color: '' };
         this.currentPage = 1;
         this.itemsPerPage = 10;
-        this.latestCode = null; // Lưu mã vải vừa giao dịch
+        this.latestCode = null;
       }
 
       validateTransaction(code, trees, meters) {
@@ -241,11 +302,11 @@
 
         this.transactions.push(transaction);
         this.inventory[formattedCode] = { trees: stockTrees, meters: stockMeters };
-        this.latestCode = formattedCode; // Lưu mã vải vừa giao dịch
+        this.latestCode = formattedCode;
         console.log('Added transaction:', transaction);
         console.log('Current transactions:', this.transactions);
         console.log('Latest code:', this.latestCode);
-        return { success: true, transaction };
+        return { success: true, transaction, formattedCode };
       }
 
       getFilteredTransactions() {
@@ -265,6 +326,32 @@
         });
         console.log('Filtered transactions:', filtered);
         return filtered;
+      }
+
+      getFilteredInventory() {
+        const filtered = Object.entries(this.inventory).filter(([code, { trees, meters }]) => {
+          if (trees === 0 && meters === 0) return false;
+          const fabricType = code.split('-')[0];
+          const color = code.split('-')[1];
+          return (
+            (!this.filterInventory.fabricType || fabricType === this.filterInventory.fabricType) &&
+            (!this.filterInventory.color || color === this.filterInventory.color)
+          );
+        });
+        console.log('Filtered inventory:', filtered);
+        return filtered;
+      }
+
+      getFabricTypes() {
+        const fabricTypes = [...new Set(Object.keys(this.inventory).map(code => code.split('-')[0]))].sort();
+        console.log('Fabric types:', fabricTypes);
+        return fabricTypes;
+      }
+
+      getColors() {
+        const colors = [...new Set(Object.keys(this.inventory).map(code => code.split('-')[1]))].sort();
+        console.log('Colors:', colors);
+        return colors;
       }
 
       saveData() {
@@ -343,6 +430,44 @@
         </tr>`;
     };
 
+    const updateInventoryTable = () => {
+      const inventoryTableBody = document.getElementById('inventory-table');
+      if (!inventoryTableBody) {
+        console.error('Element inventory-table not found');
+        showOutput('Lỗi hiển thị bảng tồn kho!');
+        return;
+      }
+      const filteredInventory = inventoryManager.getFilteredInventory();
+      console.log('Updating inventory table:', { inventoryCount: filteredInventory.length });
+      inventoryTableBody.innerHTML = filteredInventory.length === 0
+        ? '<tr><td colspan="4" class="text-center">Chưa có tồn kho</td></tr>'
+        : filteredInventory.map(([code, { trees, meters }]) => `
+            <tr>
+              <td>${code}</td>
+              <td>${trees}</td>
+              <td>${meters.toFixed(1)} m</td>
+              <td>
+                <button class="btn btn-warning btn-sm action-btn" onclick="showExportModal('${code}')">Xuất</button>
+              </td>
+            </tr>`).join('');
+    };
+
+    const updateInventoryFilters = () => {
+      const fabricTypeSelect = document.getElementById('filterFabricType');
+      const colorSelect = document.getElementById('filterColor');
+      if (!fabricTypeSelect || !colorSelect) {
+        console.error('Inventory filter elements not found');
+        return;
+      }
+      const fabricTypes = inventoryManager.getFabricTypes();
+      const colors = inventoryManager.getColors();
+      fabricTypeSelect.innerHTML = '<option value="">Tất cả loại vải</option>' +
+        fabricTypes.map(type => `<option value="${type}">${type}</option>`).join('');
+      colorSelect.innerHTML = '<option value="">Tất cả màu</option>' +
+        colors.map(color => `<option value="${color}">${color}</option>`).join('');
+      console.log('Updated inventory filters:', { fabricTypes, colors });
+    };
+
     const updateHistoryTable = () => {
       const transactionsBody = document.getElementById('transactions');
       if (!transactionsBody) {
@@ -390,6 +515,8 @@
     const updateUI = () => {
       console.log('Updating UI');
       updateLatestInventory(inventoryManager.latestCode);
+      updateInventoryTable();
+      updateInventoryFilters();
       updateHistoryTable();
       updateFilterDropdown();
     };
@@ -454,6 +581,17 @@
       updateUI();
     };
 
+    const applyInventoryFilter = () => {
+      const filterFabricType = document.getElementById('filterFabricType')?.value;
+      const filterColor = document.getElementById('filterColor')?.value;
+      inventoryManager.filterInventory = {
+        fabricType: filterFabricType || '',
+        color: filterColor || ''
+      };
+      console.log('Applying inventory filter:', inventoryManager.filterInventory);
+      updateUI();
+    };
+
     const prevPage = () => {
       if (inventoryManager.currentPage > 1) {
         inventoryManager.currentPage--;
@@ -470,6 +608,68 @@
       }
     };
 
+    const showExportModal = (code) => {
+      const exportCode = document.getElementById('exportCode');
+      const exportTrees = document.getElementById('exportTrees');
+      const exportMeters = document.getElementById('exportMeters');
+      const exportDate = document.getElementById('exportDate');
+      if (!exportCode || !exportTrees || !exportMeters || !exportDate) {
+        console.error('Export modal elements not found');
+        showOutput('Lỗi hiển thị modal xuất kho!');
+        return;
+      }
+      exportCode.value = code;
+      exportTrees.value = '0';
+      exportMeters.value = '0.0';
+      exportDate.value = inventoryManager.today;
+      const modal = new bootstrap.Modal(document.getElementById('exportModal'));
+      modal.show();
+      console.log('Showing export modal for code:', code);
+    };
+
+    const processExport = () => {
+      const code = document.getElementById('exportCode')?.value;
+      const trees = parseInt(document.getElementById('exportTrees')?.value);
+      const meters = parseFloat(document.getElementById('exportMeters')?.value);
+      const date = document.getElementById('exportDate')?.value || inventoryManager.today;
+
+      console.log('Processing export:', { code, trees, meters, date });
+
+      if (!code || isNaN(trees) || isNaN(meters)) {
+        showOutput('Vui lòng nhập đầy đủ thông tin xuất kho!');
+        return;
+      }
+
+      const error = inventoryManager.validateTransaction(code.replace('-', ''), trees, meters);
+      if (error) {
+        showOutput(error);
+        return;
+      }
+
+      const formattedCode = code;
+      const formattedMeters = parseFloat(meters.toFixed(1));
+      const formattedDate = inventoryManager.formatDate(date);
+
+      showConfirmation(
+        `Xác nhận xuất mã ${formattedCode} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}?`,
+        () => {
+          console.log('Confirmed export');
+          const result = inventoryManager.addTransaction('x', code.replace('-', ''), trees, meters, date);
+          if (!result.success) {
+            showOutput(result.error);
+            return;
+          }
+          if (!inventoryManager.saveData()) {
+            showOutput('Lỗi lưu dữ liệu!');
+            return;
+          }
+          updateUI();
+          showOutput('Đã xuất kho thành công!');
+          bootstrap.Modal.getInstance(document.getElementById('exportModal')).hide();
+        }
+      );
+    };
+
     document.getElementById('formDate').value = inventoryManager.today;
     const inputTab = document.getElementById('input-tab');
     if (inputTab) {
@@ -482,10 +682,14 @@
     if (processButton) processButton.addEventListener('click', processFormCommand);
     const applyFilterButton = document.getElementById('applyFilterButton');
     if (applyFilterButton) applyFilterButton.addEventListener('click', applyFilter);
+    const applyInventoryFilterButton = document.getElementById('applyInventoryFilterButton');
+    if (applyInventoryFilterButton) applyInventoryFilterButton.addEventListener('click', applyInventoryFilter);
     const prevPageButton = document.getElementById('prevPageButton');
     if (prevPageButton) prevPageButton.addEventListener('click', prevPage);
     const nextPageButton = document.getElementById('nextPageButton');
     if (nextPageButton) nextPageButton.addEventListener('click', nextPage);
+    const confirmExportButton = document.getElementById('confirmExportButton');
+    if (confirmExportButton) confirmExportButton.addEventListener('click', processExport);
 
     console.log('Initializing app');
     inventoryManager.loadData();
