@@ -23,6 +23,7 @@
     .pagination-section { margin-top: 15px; display: flex; align-items: center; gap: 10px; }
     .pagination-btn { padding: 6px 12px; }
     .action-btn { padding: 5px 10px; font-size: 0.85em; margin-right: 5px; }
+    .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .total-row { font-weight: bold; background-color: #e9ecef; }
     .file-input-wrapper { margin-top: 15px; }
     .file-input-wrapper input[type="file"] { width: 100%; padding: 8px; }
@@ -31,7 +32,7 @@
       .nav-link { padding: 8px 15px; font-size: 0.9em; }
       .tab-content { padding: 15px; }
       .btn { width: 100%; margin-bottom: 10px; padding: 12px; font-size: 1em; }
-      .form-section h5, .filter-section h5, .manage-section h5 { font-size: 1em; }
+      .form-section h5, .filter-section h5 { font-size: 1em; }
       .table { font-size: 0.8em; }
       .row.g-3 > div { margin-bottom: 10px; }
       .filter-section .col-12, .filter-section .col-md-3 { margin-bottom: 10px; }
@@ -183,7 +184,6 @@
         </div>
         <div class="tab-pane fade" id="manage">
           <div class="manage-section">
-            <h5>Quản lý dữ liệu</h5>
             <div class="row g-3">
               <div class="col-md-4 col-12">
                 <button class="btn btn-success w-100" id="exportInventoryButton">Xuất dữ liệu tồn kho</button>
@@ -654,7 +654,7 @@
               <td>${line.trees}</td>
               <td>${line.meters.toFixed(1)} m</td>
               <td>
-                <button class="btn btn-warning btn-sm action-btn" onclick='transferToInputTab(${JSON.stringify(line)})'>Xuất</button>
+                <button class="btn btn-warning btn-sm action-btn" onclick='transferToInputTab(${JSON.stringify(line)})' ${line.trees === 0 && line.meters === 0 ? 'disabled' : ''}>Xuất</button>
               </td>
             </tr>`).join('');
 
@@ -764,7 +764,7 @@
 
       const message = inventoryManager.editingIndex !== null
         ? `Xác nhận cập nhật giao dịch mã ${formattedCode} với ${type === 'n' ? 'nhập' : 'xuất'} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}?`
-        : `Xác nhận ${type === 'n' ? 'nhập' : 'xuất'} mã ${formattedCode} ${trees} cây, ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}?`;
+        : `Xác nhận ${type === 'n' ? 'nhập' : 'xuất'} mã ${formattedCode} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}?`;
 
       showConfirmation(message, () => {
         console.log('Confirmed transaction');
