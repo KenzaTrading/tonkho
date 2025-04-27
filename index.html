@@ -357,19 +357,20 @@
 
     // Cập nhật giao diện
     function updateUI() {
-      // Cập nhật 5 mã gần nhất
+      // Cập nhật 5 mã gần nhất (tổng tồn kho)
       const recentInventoryBody = document.getElementById('recent-inventory');
       recentInventoryBody.innerHTML = '';
-      const sortedInputs = [...activeInputs].sort((a, b) => {
+      const sortedTransactions = [...transactions].sort((a, b) => {
         const dateA = new Date(a.date.split('/').reverse().join('-'));
         const dateB = new Date(b.date.split('/').reverse().join('-'));
         return dateB - dateA;
       });
-      const recentCodes = [...new Set(sortedInputs.map(t => t.code))].slice(0, 5);
+      const recentCodes = [...new Set(sortedTransactions.map(t => t.code))].slice(0, 5);
       recentCodes.forEach(code => {
-        sortedInputs.filter(t => t.code === code && t.trees > 0).forEach(t => {
-          recentInventoryBody.innerHTML += `<tr><td>${t.code}</td><td>${t.trees}</td><td>${t.meters.toFixed(1)} m</td></tr>`;
-        });
+        const data = inventory[code] || { trees: 0, meters: 0 };
+        if (data.trees > 0 || data.meters > 0) {
+          recentInventoryBody.innerHTML += `<tr><td>${code}</td><td>${data.trees}</td><td>${data.meters.toFixed(1)} m</td></tr>`;
+        }
       });
 
       // Cập nhật tồn kho (liệt kê giao dịch nhập còn tồn)
