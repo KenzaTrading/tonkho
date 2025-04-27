@@ -19,7 +19,7 @@
     .table .total-row { font-weight: bold; background-color: #f8f9fa; }
     .btn { border-radius: 5px; font-size: 0.9em; padding: 8px 15px; }
     .form-control, .form-select { font-size: 0.9em; border-radius: 5px; }
-    .form-section, .filter-section { margin-bottom: 20px; }
+    .form-section, .filter-section { margin-bottom: 25px; }
     .action-btn { padding: 5px 10px; font-size: 0.8em; }
     .pagination-section { margin-top: 15px; text-align: center; }
     .pagination-btn { margin: 0 5px; }
@@ -36,6 +36,7 @@
       .pagination-btn { padding: 6px 12px; font-size: 0.8em; }
       .manage-data-btns { flex-direction: column; align-items: stretch; }
       .form-section input[type="file"] { margin-bottom: 10px; }
+      .form-section { margin-bottom: 20px; }
     }
   </style>
 </head>
@@ -127,7 +128,14 @@
                   <option value="">Tất cả màu</option>
                 </select>
               </div>
-              <div class="col-md-4 col-12 d-flex align-items-end">
+              <div class="col-md-4 col-12">
+                <label for="displayMode" class="form-label">Chế độ hiển thị:</label>
+                <select class="form-select" id="displayMode" onchange="applyInventoryFilter()">
+                  <option value="paged">Phân trang</option>
+                  <option value="all">Hiển thị tất cả</option>
+                </select>
+              </div>
+              <div class="col-md-12 col-12 d-flex align-items-end">
                 <button class="btn btn-primary" onclick="applyInventoryFilter()">Thực hiện</button>
               </div>
             </div>
@@ -203,7 +211,7 @@
         <!-- Tab 4: Quản lý dữ liệu -->
         <div class="tab-pane fade" id="manage" role="tabpanel" aria-labelledby="manage-tab">
           <div class="form-section">
-            <h5>Xuất tồn kho</h5>
+            <h5>Xuất dữ liệu tồn kho</h5>
             <button class="btn btn-primary" onclick="showExportInventoryConfirmation()">Thực hiện</button>
           </div>
           <div class="form-section">
@@ -363,15 +371,20 @@
 
     // Cập nhật giao diện
     function updateUI() {
-      // Cập nhật 5 mã gần nhất (tổng tồn kho)
+      // Cập nhật 5 mã gần nhất (tổng tồn kho, sắp xếp theo thời gian giao dịch mới nhất)
       const recentInventoryBody = document.getElementById('recent-inventory');
       recentInventoryBody.innerHTML = '';
-      const sortedTransactions = [...transactions].sort((a, b) => {
-        const dateA = new Date(a.date.split('/').reverse().join('-'));
-        const dateB = new Date(b.date.split('/').reverse().join('-'));
-        return dateB - dateA;
+      const codeLatestDates = {};
+      transactions.forEach(t => {
+        const date = new Date(t.date.split('/').reverse().join('-'));
+        if (!codeLatestDates[t.code] || date > codeLatestDates[t.code].date) {
+          codeLatestDates[t.code] = { date, code: t.code };
+        }
       });
-      const recentCodes = [...new Set(sortedTransactions.map(t => t.code))].slice(0, 5);
+      const recentCodes = Object.values(codeLatestDates)
+        .sort((a, b) => b.date - a.date)
+        .slice(0, 5)
+        .map(item => item.code);
       recentCodes.forEach(code => {
         const data = inventory[code] || { trees: 0, meters: 0 };
         recentInventoryBody.innerHTML += `<tr><td>${code}</td><td>${data.trees}</td><td>${data.meters.toFixed(1)} m</td></tr>`;
@@ -392,11 +405,22 @@
           (!color || code.endsWith('-' + color))
         );
       });
-      const totalInventoryPages = Math.ceil(filteredCodes.length / inventoryItemsPerPage);
-      inventoryPage = Math.min(inventoryPage, totalInventoryPages || 1);
-      const startInventory = (inventoryPage - 1) * inventoryItemsPerPage;
-      const endInventory = startInventory + inventoryItemsPerPage;
-      const pageCodes = filteredCodes.slice(startInventory, endInventory);
+      const displayMode = document.getElementById('displayMode').value;
+      let pageCodes;
+      if (displayMode === 'paged') {
+        const totalInventoryPages = Math.ceil(filteredCodes.length / inventoryItemsPerPage);
+        inventoryPage = Math.min(inventoryPage, totalInventoryPages || 1);
+        const startInventory = (inventoryPage - 1) * inventoryItemsPerPage;
+        const endInventory = startInventory + inventoryItemsPerPage;
+        pageCodes = filteredCodes.slice(startInventory, endInventory);
+        document.getElementById('inventoryPageInfo').textContent = `Trang ${inventoryPage}/${totalInventoryPages || 1}`;
+        document.getElementById('prevInventoryPage').disabled = inventoryPage === 1;
+        document.getElementById('nextInventoryPage').disabled = inventoryPage === totalInventoryPages || totalInventoryPages === 0;
+        document.getElementById('inventoryPageInfo').parentElement.style.display = 'block';
+      } else {
+        pageCodes = filteredCodes;
+        document.getElementById('inventoryPageInfo').parentElement.style.display = 'none';
+      }
       pageCodes.forEach(code => {
         const data = inventory[code];
         inventoryBody.innerHTML += `
@@ -414,9 +438,6 @@
       if (pageCodes.length > 0) {
         inventoryTotal.innerHTML = `<tr class="total-row"><td>Tổng</td><td>${totalTrees}</td><td>${totalMeters.toFixed(1)} m</td><td></td></tr>`;
       }
-      document.getElementById('inventoryPageInfo').textContent = `Trang ${inventoryPage}/${totalInventoryPages || 1}`;
-      document.getElementById('prevInventoryPage').disabled = inventoryPage === 1;
-      document.getElementById('nextInventoryPage').disabled = inventoryPage === totalInventoryPages || totalInventoryPages === 0;
 
       // Cập nhật dropdown tìm kiếm
       const fabricTypeSelect = document.getElementById('searchFabricType');
@@ -904,7 +925,7 @@
 
     // Tab Quản lý dữ liệu: Xác nhận và xử lý
     function showExportInventoryConfirmation() {
-      showConfirmation('Xác nhận xuất tồn kho?', function() {
+      showConfirmation('Xác nhận xuất dữ liệu tồn kho?', function() {
         const headers = ['Mã vải', 'Số cây', 'Số mét'];
         const rows = Object.keys(inventory).map(code => [
           code,
@@ -923,7 +944,7 @@
         a.download = `tonkho_${date}.csv`;
         a.click();
         URL.revokeObjectURL(url);
-        document.getElementById('output').textContent = 'Đã xuất tồn kho!';
+        document.getElementById('output').textContent = 'Đã xuất dữ liệu tồn kho!';
       });
     }
 
