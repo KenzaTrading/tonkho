@@ -124,11 +124,13 @@
       padding: 12px;
       font-weight: 500;
       border-bottom: 2px solid #E2E8F0;
+      text-align: center;
     }
     .table td {
       padding: 12px;
       border-bottom: 1px solid #E2E8F0;
       vertical-align: middle;
+      text-align: center;
     }
     .table tr:hover {
       background: #F7FAFC;
@@ -136,6 +138,9 @@
     .total-row {
       background: #EDF2F7;
       font-weight: 600;
+    }
+    .total-row td {
+      text-align: center;
     }
     .action-btn {
       padding: 6px 12px;
@@ -166,6 +171,44 @@
       padding-top: 20px;
       border-top: 1px solid #E2E8F0;
       text-align: center;
+    }
+    #transactions th:nth-child(1),
+    #transactions td:nth-child(1) {
+      width: 12%;
+    }
+    #transactions th:nth-child(2),
+    #transactions td:nth-child(2) {
+      width: 10%;
+    }
+    #transactions th:nth-child(3),
+    #transactions td:nth-child(3) {
+      width: 12%;
+    }
+    #transactions th:nth-child(4),
+    #transactions td:nth-child(4) {
+      width: 11%;
+    }
+    #transactions th:nth-child(5),
+    #transactions td:nth-child(5) {
+      width: 12%;
+    }
+    #transactions th:nth-child(6),
+    #transactions td:nth-child(6) {
+      width: 12%;
+    }
+    #transactions th:nth-child(7),
+    #transactions td:nth-child(7) {
+      width: 12%;
+    }
+    #transactions th:nth-child(8),
+    #transactions td:nth-child(8) {
+      width: 15%;
+    }
+    #transactions .action-column {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      flex-wrap: nowrap;
     }
     @media (max-width: 576px) {
       body {
@@ -212,6 +255,13 @@
       }
       .row.g-3 > div {
         margin-bottom: 10px;
+      }
+      #transactions .action-column {
+        gap: 3px;
+      }
+      #transactions .action-btn {
+        padding: 4px 6px;
+        font-size: 10px;
       }
     }
   </style>
@@ -422,6 +472,14 @@
       };
     };
 
+    // Hàm định dạng số với phân cách hàng ngàn và 1 chữ số thập phân
+    const formatNumber = (number, isDecimal = false) => {
+      if (isDecimal) {
+        return number.toFixed(1).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+      }
+      return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    };
+
     class InventoryManager {
       constructor() {
         this.inventory = [];
@@ -608,8 +666,8 @@
           'Ngày': today,
           'Loại': 'Nhập',
           'Mã vải': line.code,
-          'Số cây': line.trees,
-          'Số mét': line.meters.toFixed(1)
+          'Số cây': formatNumber(line.trees),
+          'Số mét': formatNumber(line.meters, true)
         }));
 
         if (data.length === 0) return { success: false, error: 'Không có dữ liệu tồn kho để xuất!' };
@@ -635,10 +693,10 @@
           'Ngày': t.date,
           'Loại': t.displayType,
           'Mã vải': t.code,
-          'Số cây': t.trees,
-          'Số mét': t.meters.toFixed(1),
-          'Tồn kho (cây)': t.stockTrees,
-          'Tồn kho (mét)': t.stockMeters.toFixed(1)
+          'Số cây': formatNumber(t.trees),
+          'Số mét': formatNumber(t.meters, true),
+          'Tồn kho (cây)': formatNumber(t.stockTrees),
+          'Tồn kho (mét)': formatNumber(t.stockMeters, true)
         }));
 
         if (data.length === 0) return { success: false, error: 'Không có lịch sử giao dịch để xuất!' };
@@ -730,8 +788,8 @@
                   }
 
                   const cleanCode = code.replace('-', '');
-                  const parsedTrees = parseInt(trees);
-                  const parsedMeters = parseFloat(meters);
+                  const parsedTrees = parseInt(trees.replace(/,/g, '')); // Xóa dấu phẩy khi parse
+                  const parsedMeters = parseFloat(meters.replace(/,/g, '')); // Xóa dấu phẩy khi parse
 
                   if (isNaN(parsedTrees) || isNaN(parsedMeters)) {
                     errors.push(`Dòng ${i + 2}, mã ${code}: Số cây hoặc số mét không hợp lệ!`);
@@ -908,8 +966,8 @@
       DOM.latestInventory.innerHTML = `
         <tr>
           <td>${inventoryManager.latestCode}</td>
-          <td>${totalTrees}</td>
-          <td>${totalMeters.toFixed(1)} m</td>
+          <td>${formatNumber(totalTrees)}</td>
+          <td>${formatNumber(totalMeters, true)} m</td>
         </tr>`;
     };
 
@@ -931,15 +989,15 @@
         : filteredInventory.map(line => `
             <tr>
               <td>${line.code}</td>
-              <td>${line.trees}</td>
-              <td>${line.meters.toFixed(1)} m</td>
+              <td>${formatNumber(line.trees)}</td>
+              <td>${formatNumber(line.meters, true)} m</td>
               <td>
                 <button class="btn btn-warning btn-sm action-btn" onclick='transferToInputTab(${JSON.stringify(line)})' ${line.trees === 0 && line.meters === 0 ? 'disabled' : ''}>Xuất</button>
               </td>
             </tr>`).join('');
 
-      DOM.totalTrees.textContent = totalTrees;
-      DOM.totalMeters.textContent = `${totalMeters.toFixed(1)} m`;
+      DOM.totalTrees.textContent = formatNumber(totalTrees);
+      DOM.totalMeters.textContent = `${formatNumber(totalMeters, true)} m`;
     };
 
     const updateInventoryFilters = () => {
@@ -972,11 +1030,11 @@
                 <td>${t.date}</td>
                 <td>${t.displayType}</td>
                 <td>${t.code}</td>
-                <td>${t.trees}</td>
-                <td>${t.meters.toFixed(1)} m</td>
-                <td>${t.stockTrees}</td>
-                <td>${t.stockMeters.toFixed(1)} m</td>
-                <td>
+                <td>${formatNumber(t.trees)}</td>
+                <td>${formatNumber(t.meters, true)} m</td>
+                <td>${formatNumber(t.stockTrees)}</td>
+                <td>${formatNumber(t.stockMeters, true)} m</td>
+                <td class="action-column">
                   <button class="btn btn-warning btn-sm action-btn" onclick="editTransaction(${globalIndex})">Sửa</button>
                   <button class="btn btn-danger btn-sm action-btn" onclick="deleteTransaction(${globalIndex})">Xóa</button>
                 </td>
@@ -1025,8 +1083,8 @@
       const formattedDate = inventoryManager.formatDate(date);
 
       const message = inventoryManager.editingIndex !== null
-        ? `Xác nhận cập nhật giao dịch mã ${formattedCode} với ${type === 'n' ? 'nhập' : 'xuất'} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}?`
-        : `Xác nhận ${type === 'n' ? 'nhập' : 'xuất'} mã ${formattedCode} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}?`;
+        ? `Xác nhận cập nhật giao dịch mã ${formattedCode} với ${type === 'n' ? 'nhập' : 'xuất'} ${formatNumber(trees)} cây, ${formatNumber(formattedMeters, true)} mét vào ngày ${formattedDate}?`
+        : `Xác nhận ${type === 'n' ? 'nhập' : 'xuất'} mã ${formattedCode} ${formatNumber(trees)} cây, ${formatNumber(formattedMeters, true)} mét vào ngày ${formattedDate}?`;
 
       showConfirmation(message, () => {
         let result;
