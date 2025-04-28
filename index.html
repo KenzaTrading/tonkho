@@ -148,6 +148,9 @@
       background: #EDF2F7;
       font-weight: 600;
     }
+    .total-row td {
+      text-align: center;
+    }
     .action-btn {
       padding: 6px 12px;
       font-size: 13px;
@@ -182,7 +185,7 @@
     .table .code-column {
       text-align: center;
     }
-    #inventory-table .number-column {
+    .table .number-column {
       text-align: center;
     }
     .table .action-column {
@@ -1000,15 +1003,16 @@
 
     const formatNumber = (num, isMeter = false) => {
       if (isNaN(num)) return '';
-      return num.toLocaleString('vi-VN', {
+      const formatted = num.toLocaleString('vi-VN', {
         minimumFractionDigits: isMeter ? 1 : 0,
         maximumFractionDigits: isMeter ? 1 : 0
       });
+      return isMeter ? `${formatted} m` : formatted;
     };
 
     const parseFormattedNumber = (str) => {
       if (!str) return 0;
-      return parseFloat(str.replace(/,/g, ''));
+      return parseFloat(str.replace(/[^0-9.-]/g, ''));
     };
 
     const updateLatestInventory = () => {
@@ -1143,8 +1147,8 @@
       const formattedDate = inventoryManager.formatDate(date);
 
       const message = inventoryManager.editingIndex !== null
-        ? `Xác nhận cập nhật giao dịch mã ${formattedCode} với ${type === 'n' ? 'nhập' : 'xuất'} ${formatNumber(trees)} cây, ${formatNumber(formattedMeters, true)} mét vào ngày ${formattedDate}?`
-        : `Xác nhận ${type === 'n' ? 'nhập' : 'xuất'} mã ${formattedCode} ${formatNumber(trees)} cây, ${formatNumber(formattedMeters, true)} mét vào ngày ${formattedDate}?`;
+        ? `Xác nhận cập nhật giao dịch mã ${formattedCode} với ${type === 'n' ? 'nhập' : 'xuất'} ${formatNumber(trees)} cây, ${formatNumber(formattedMeters, true)} vào ngày ${formattedDate}?`
+        : `Xác nhận ${type === 'n' ? 'nhập' : 'xuất'} mã ${formattedCode} ${formatNumber(trees)} cây, ${formatNumber(formattedMeters, true)} vào ngày ${formattedDate}?`;
 
       showConfirmation(message, () => {
         let result;
@@ -1317,8 +1321,7 @@
       const filteredTransactions = inventoryManager.getFilteredTransactions();
       const totalPages = Math.max(1, Math.ceil(filteredTransactions.length / inventoryManager.itemsPerPage));
       if (inventoryManager.currentPage < totalPages) {
-        W
-inventoryManager.currentPage++;
+        inventoryManager.currentPage++;
         updateUI();
       }
     };
