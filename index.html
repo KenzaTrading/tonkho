@@ -185,17 +185,20 @@
         <div class="tab-pane fade" id="manage">
           <div class="manage-section">
             <div class="row g-3">
-              <div class="col-md-4 col-12">
+              <div class="col-md-3 col-12">
                 <button class="btn btn-success w-100" id="exportInventoryButton">Xuất dữ liệu tồn kho</button>
               </div>
-              <div class="col-md-4 col-12">
+              <div class="col-md-3 col-12">
                 <div class="file-input-wrapper">
-                  <input type="file" class="form-control" id="importInventoryFile" accept=".xlsx">
+                  <input type="file" class="form-control" id="importInventoryFile" accept=".xlsx,.csv">
                 </div>
                 <button class="btn btn-primary w-100 mt-2" id="importInventoryButton" disabled>Nhập dữ liệu tồn kho</button>
               </div>
-              <div class="col-md-4 col-12">
+              <div class="col-md-3 col-12">
                 <button class="btn btn-danger w-100" id="deleteAllTransactionsButton">Xóa lịch sử giao dịch</button>
+              </div>
+              <div class="col-md-3 col-12">
+                <button class="btn btn-success w-100" id="exportTransactionsButton">Xuất lịch sử giao dịch</button>
               </div>
             </div>
           </div>
@@ -417,85 +420,266 @@
         return { success: true };
       }
 
-      exportInventoryToExcel() {
-        console.log('Exporting inventory to Excel');
+      downloadCSV(csvContent, fileName) {
+        try {
+          const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = fileName;
+          link.click();
+          URL.revokeObjectURL(link.href);
+          console.log('Downloaded CSV:', fileName);
+          return { success: true, fileName };
+        } catch (error) {
+          console.error('Error downloading CSV:', error);
+          return { success: false, error: 'Lỗi tải file CSV!' };
+        }
+      }
+
+      exportInventoryToCSV() {
+        console.log('Exporting inventory to CSV');
         const today = this.formatDate(this.today);
         const data = this.inventory.map(line => ({
           'Ngày': today,
           'Loại': 'Nhập',
           'Mã vải': line.code,
           'Số cây': line.trees,
-          'Số mét': line.meters
+          'Số mét': line.meters.toFixed(1)
         }));
 
-        const worksheet = XLSX.utils.json_to_sheet(data);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Tồn kho');
-        const fileName = `TonKho_${this.today.replace(/-/g, '')}.xlsx`;
-        XLSX.writeFile(workbook, fileName, { bookType: 'xlsx', type: 'binary' });
-        console.log('Exported inventory to:', fileName);
-        return { success: true, fileName };
+        if (data.length === 0) {
+          return { success: false, error: 'Không có dữ liệu tồn kho để xuất!' };
+        }
+
+        const headers = ['Ngày', 'Loại', 'Mã vải', 'Số cây', 'Số mét'];
+        const csvRows = [
+          headers.join(','),
+          ...data.map(row => [
+            `"${row['Ngày']}"`,
+            `"${row['Loại']}"`,
+            `"${row['Mã vải']}"`,
+            row['Số cây'],
+            row['Số mét']
+          ].join(','))
+        ];
+        const csvContent = csvRows.join('\n');
+        const fileName = `TonKho_${this.today.replace(/-/g, '')}.csv`;
+
+        return this.downloadCSV(csvContent, fileName);
       }
 
-      importInventoryFromExcel(file) {
-        console.log('Importing inventory from Excel:', file.name);
-        return new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            try {
-              const data = new Uint8Array(e.target.result);
-              const workbook = XLSX.read(data, { type: 'array' });
-              const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-              const json = XLSX.utils.sheet_to_json(worksheet, { header: ['Ngày', 'Loại', 'Mã vải', 'Số cây', 'Số mét'], defval: '' });
+      exportTransactionsToCSV() {
+        console.log('Exporting transactions to CSV');
+        const data = this.transactions.map(t => ({
+          'Ngày': t.date,
+          'Loại': t.displayType,
+          'Mã vải': t.code,
+          'Số cây': t.trees,
+          'Số mét': t.meters.toFixed(1),
+          'Tồn kho (cây)': t.stockTrees,
+          'Tồn kho (mét)': t.stockMeters.toFixed(1)
+        }));
 
-              console.log('Parsed Excel data:', json);
+        if (data.length === 0) {
+          return { success: false, error: 'Không có lịch sử giao dịch để xuất!' };
+        }
 
-              if (json.length === 0) {
-                resolve({ success: false, error: 'File rỗng!' });
-                return;
-              }
+        const headers = ['Ngày', 'Loại', 'Mã vải', 'Số cây', 'Số mét', 'Tồn kho (cây)', 'Tồn kho (mét)'];
+        const csvRows = [
+          headers.join(','),
+          ...data.map(row => [
+            `"${row['Ngày']}"`,
+            `"${row['Loại']}"`,
+            `"${row['Mã vải']}"`,
+            row['Số cây'],
+            row['Số mét'],
+            row['Tồn kho (cây)'],
+            row['Tồn kho (mét)']
+          ].join(','))
+        ];
+        const csvContent = csvRows.join('\n');
+        const fileName = `LichSuGiaoDich_${this.today.replace(/-/g, '')}.csv`;
 
-              const expectedHeader = ['Ngày', 'Loại', 'Mã vải', 'Số cây', 'Số mét'];
-              const firstRow = json[0];
-              const isHeader = expectedHeader.every((col, i) => firstRow[col] === col);
-              const dataRows = isHeader ? json.slice(1) : json;
+        return this.downloadCSV(csvContent, fileName);
+      }
 
-              if (dataRows.length === 0) {
-                resolve({ success: false, error: 'File không chứa dữ liệu hợp lệ!' });
-                return;
-              }
+      parseCSV(csvText) {
+        console.log('Parsing CSV content');
+        const lines = csvText.replace(/^\uFEFF/, '').split('\n').filter(line => line.trim());
+        if (lines.length === 0) {
+          return { success: false, error: 'File CSV rỗng!' };
+        }
 
-              const errors = [];
-              for (let i = 0; i < dataRows.length; i++) {
-                const row = dataRows[i];
-                const { 'Ngày': date, 'Loại': type, 'Mã vải': code, 'Số cây': trees, 'Số mét': meters } = row;
-                if (!date || type !== 'Nhập' || !code || isNaN(trees) || isNaN(meters)) {
-                  errors.push(`Dòng ${i + (isHeader ? 2 : 1)} không hợp lệ: ${JSON.stringify(row)}`);
-                  continue;
-                }
-                const cleanCode = code.replace('-', '');
-                const error = this.validateTransaction(cleanCode, parseInt(trees), parseFloat(meters));
-                if (error) {
-                  errors.push(`Lỗi tại dòng ${i + (isHeader ? 2 : 1)}, mã ${code}: ${error}`);
-                  continue;
-                }
-                const result = this.addTransaction('n', cleanCode, parseInt(trees), parseFloat(meters), date);
-                if (!result.success) {
-                  errors.push(`Lỗi thêm giao dịch tại dòng ${i + (isHeader ? 2 : 1)}, mã ${code}: ${result.error}`);
-                }
-              }
-
-              if (errors.length > 0) {
-                resolve({ success: false, error: `Có lỗi khi nhập dữ liệu:\n${errors.join('\n')}` });
-              } else {
-                resolve({ success: true });
-              }
-            } catch (error) {
-              console.error('Error reading Excel file:', error);
-              resolve({ success: false, error: 'Lỗi đọc file Excel!' });
+        const parseCSVLine = (line) => {
+          const values = [];
+          let current = '';
+          let inQuotes = false;
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+              values.push(current.trim());
+              current = '';
+            } else {
+              current += char;
             }
+          }
+          values.push(current.trim());
+          return values;
+        };
+
+        const headers = parseCSVLine(lines[0]).map(h => h.trim());
+        const expectedHeader = ['Ngày', 'Loại', 'Mã vải', 'Số cây', 'Số mét'];
+        if (!expectedHeader.every((col, i) => headers[i] === col)) {
+          return { success: false, error: 'File CSV không đúng định dạng! Header phải là: ' + expectedHeader.join(',') };
+        }
+
+        const dataRows = lines.slice(1).map((line, index) => {
+          const values = parseCSVLine(line);
+          if (values.length !== headers.length) {
+            return { error: `Dòng ${index + 2} không đủ cột: ${line}` };
+          }
+          return {
+            'Ngày': values[0].replace(/^"|"$/g, ''),
+            'Loại': values[1].replace(/^"|"$/g, ''),
+            'Mã vải': values[2].replace(/^"|"$/g, ''),
+            'Số cây': values[3],
+            'Số mét': values[4]
           };
-          reader.readAsArrayBuffer(file);
+        });
+
+        const errors = dataRows.filter(row => row.error).map(row => row.error);
+        if (errors.length > 0) {
+          return { success: false, error: `Lỗi cú pháp CSV:\n${errors.join('\n')}` };
+        }
+
+        return { success: true, data: dataRows };
+      }
+
+      importInventory(file) {
+        console.log('Importing inventory from file:', file.name);
+        return new Promise((resolve) => {
+          const fileExtension = file.name.split('.').pop().toLowerCase();
+          const reader = new FileReader();
+
+          if (fileExtension === 'csv') {
+            reader.onload = (e) => {
+              try {
+                const csvText = e.target.result;
+                const csvResult = this.parseCSV(csvText);
+                if (!csvResult.success) {
+                  resolve({ success: false, error: csvResult.error });
+                  return;
+                }
+
+                const dataRows = csvResult.data;
+                if (dataRows.length === 0) {
+                  resolve({ success: false, error: 'File CSV không chứa dữ liệu!' });
+                  return;
+                }
+
+                const errors = [];
+                for (let i = 0; i < dataRows.length; i++) {
+                  const row = dataRows[i];
+                  const { 'Ngày': date, 'Loại': type, 'Mã vải': code, 'Số cây': trees, 'Số mét': meters } = row;
+
+                  if (!date || type !== 'Nhập' || !code || !trees || !meters) {
+                    errors.push(`Dòng ${i + 2} không hợp lệ: ${JSON.stringify(row)}`);
+                    continue;
+                  }
+
+                  const cleanCode = code.replace('-', '');
+                  const parsedTrees = parseInt(trees);
+                  const parsedMeters = parseFloat(meters);
+
+                  if (isNaN(parsedTrees) || isNaN(parsedMeters)) {
+                    errors.push(`Dòng ${i + 2}, mã ${code}: Số cây hoặc số mét không hợp lệ!`);
+                    continue;
+                  }
+
+                  const error = this.validateTransaction(cleanCode, parsedTrees, parsedMeters);
+                  if (error) {
+                    errors.push(`Lỗi tại dòng ${i + 2}, mã ${code}: ${error}`);
+                    continue;
+                  }
+
+                  const result = this.addTransaction('n', cleanCode, parsedTrees, parsedMeters, date);
+                  if (!result.success) {
+                    errors.push(`Lỗi thêm giao dịch tại dòng ${i + 2}, mã ${code}: ${result.error}`);
+                  }
+                }
+
+                if (errors.length > 0) {
+                  resolve({ success: false, error: `Có lỗi khi nhập dữ liệu:\n${errors.join('\n')}` });
+                } else {
+                  resolve({ success: true });
+                }
+              } catch (error) {
+                console.error('Error reading CSV file:', error);
+                resolve({ success: false, error: 'Lỗi đọc file CSV!' });
+              }
+            };
+            reader.readAsText(file, 'UTF-8');
+          } else if (fileExtension === 'xlsx') {
+            reader.onload = (e) => {
+              try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(worksheet, { header: ['Ngày', 'Loại', 'Mã vải', 'Số cây', 'Số mét'], defval: '' });
+
+                console.log('Parsed Excel data:', json);
+
+                if (json.length === 0) {
+                  resolve({ success: false, error: 'File Excel rỗng!' });
+                  return;
+                }
+
+                const expectedHeader = ['Ngày', 'Loại', 'Mã vải', 'Số cây', 'Số mét'];
+                const firstRow = json[0];
+                const isHeader = expectedHeader.every((col, i) => firstRow[col] === col);
+                const dataRows = isHeader ? json.slice(1) : json;
+
+                if (dataRows.length === 0) {
+                  resolve({ success: false, error: 'File Excel không chứa dữ liệu hợp lệ!' });
+                  return;
+                }
+
+                const errors = [];
+                for (let i = 0; i < dataRows.length; i++) {
+                  const row = dataRows[i];
+                  const { 'Ngày': date, 'Loại': type, 'Mã vải': code, 'Số cây': trees, 'Số mét': meters } = row;
+                  if (!date || type !== 'Nhập' || !code || isNaN(trees) || isNaN(meters)) {
+                    errors.push(`Dòng ${i + (isHeader ? 2 : 1)} không hợp lệ: ${JSON.stringify(row)}`);
+                    continue;
+                  }
+                  const cleanCode = code.replace('-', '');
+                  const error = this.validateTransaction(cleanCode, parseInt(trees), parseFloat(meters));
+                  if (error) {
+                    errors.push(`Lỗi tại dòng ${i + (isHeader ? 2 : 1)}, mã ${code}: ${error}`);
+                    continue;
+                  }
+                  const result = this.addTransaction('n', cleanCode, parseInt(trees), parseFloat(meters), date);
+                  if (!result.success) {
+                    errors.push(`Lỗi thêm giao dịch tại dòng ${i + (isHeader ? 2 : 1)}, mã ${code}: ${result.error}`);
+                  }
+                }
+
+                if (errors.length > 0) {
+                  resolve({ success: false, error: `Có lỗi khi nhập dữ liệu:\n${errors.join('\n')}` });
+                } else {
+                  resolve({ success: true });
+                }
+              } catch (error) {
+                console.error('Error reading Excel file:', error);
+                resolve({ success: false, error: 'Lỗi đọc file Excel!' });
+              }
+            };
+            reader.readAsArrayBuffer(file);
+          } else {
+            resolve({ success: false, error: 'Định dạng file không hỗ trợ! Vui lòng chọn file .xlsx hoặc .csv.' });
+          }
         });
       }
 
@@ -852,10 +1036,21 @@
     };
 
     const exportInventory = () => {
-      showConfirmation('Xác nhận xuất dữ liệu tồn kho ra file Excel?', () => {
-        const result = inventoryManager.exportInventoryToExcel();
+      showConfirmation('Xác nhận xuất dữ liệu tồn kho ra file CSV?', () => {
+        const result = inventoryManager.exportInventoryToCSV();
         if (!result.success) {
-          showOutput('Lỗi xuất dữ liệu tồn kho!');
+          showOutput(result.error);
+          return;
+        }
+        showOutput(`Đã xuất dữ liệu thành công: ${result.fileName}`);
+      });
+    };
+
+    const exportTransactions = () => {
+      showConfirmation('Xác nhận xuất lịch sử giao dịch ra file CSV?', () => {
+        const result = inventoryManager.exportTransactionsToCSV();
+        if (!result.success) {
+          showOutput(result.error);
           return;
         }
         showOutput(`Đã xuất dữ liệu thành công: ${result.fileName}`);
@@ -865,12 +1060,12 @@
     const importInventory = async () => {
       const fileInput = document.getElementById('importInventoryFile');
       if (!fileInput || !fileInput.files[0]) {
-        showOutput('Vui lòng chọn file Excel!');
+        showOutput('Vui lòng chọn file!');
         return;
       }
       const file = fileInput.files[0];
       showConfirmation('Xác nhận nhập dữ liệu tồn kho từ file đã chọn?', async () => {
-        const result = await inventoryManager.importInventoryFromExcel(file);
+        const result = await inventoryManager.importInventory(file);
         if (!result.success) {
           showOutput(result.error);
           return;
@@ -997,6 +1192,8 @@
     if (nextPageButton) nextPageButton.addEventListener('click', nextPage);
     const exportInventoryButton = document.getElementById('exportInventoryButton');
     if (exportInventoryButton) exportInventoryButton.addEventListener('click', exportInventory);
+    const exportTransactionsButton = document.getElementById('exportTransactionsButton');
+    if (exportTransactionsButton) exportTransactionsButton.addEventListener('click', exportTransactions);
     const importInventoryButton = document.getElementById('importInventoryButton');
     if (importInventoryButton) importInventoryButton.addEventListener('click', importInventory);
     const deleteAllTransactionsButton = document.getElementById('deleteAllTransactionsButton');
