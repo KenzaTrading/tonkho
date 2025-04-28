@@ -98,16 +98,6 @@
       border-color: #4A90E2;
       box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
     }
-    #formCode {
-      text-align: center;
-    }
-    #formTrees, #formMeters {
-      text-align: right;
-    }
-    .form-label {
-      text-align: center;
-      width: 100%;
-    }
     #output {
       margin-top: 15px;
       padding: 12px;
@@ -134,7 +124,6 @@
       padding: 12px;
       font-weight: 500;
       border-bottom: 2px solid #E2E8F0;
-      text-align: center;
     }
     .table td {
       padding: 12px;
@@ -148,14 +137,10 @@
       background: #EDF2F7;
       font-weight: 600;
     }
-    .total-row td {
-      text-align: center;
-    }
     .action-btn {
       padding: 6px 12px;
       font-size: 13px;
-      margin: 0 auto;
-      display: block;
+      margin-right: 5px;
     }
     .action-btn:disabled {
       opacity: 0.5;
@@ -181,77 +166,6 @@
       padding-top: 20px;
       border-top: 1px solid #E2E8F0;
       text-align: center;
-    }
-    .table .code-column {
-      text-align: center;
-    }
-    .table .number-column {
-      text-align: center;
-    }
-    .table .action-column {
-      text-align: center;
-    }
-    #inventory-table th:nth-child(1),
-    #inventory-table td:nth-child(1) {
-      width: 25%;
-    }
-    #inventory-table th:nth-child(2),
-    #inventory-table td:nth-child(2) {
-      width: 25%;
-    }
-    #inventory-table th:nth-child(3),
-    #inventory-table td:nth-child(3) {
-      width: 25%;
-    }
-    #inventory-table th:nth-child(4),
-    #inventory-table td:nth-child(4) {
-      width: 15%;
-    }
-    #transactions th,
-    #transactions td {
-      text-align: center;
-    }
-    #transactions th:nth-child(1),
-    #transactions td:nth-child(1) {
-      width: 12%;
-    }
-    #transactions th:nth-child(2),
-    #transactions td:nth-child(2) {
-      width: 12%;
-    }
-    #transactions th:nth-child(3),
-    #transactions td:nth-child(3) {
-      width: 12%;
-    }
-    #transactions th:nth-child(4),
-    #transactions td:nth-child(4) {
-      width: 12%;
-    }
-    #transactions th:nth-child(5),
-    #transactions td:nth-child(5) {
-      width: 12%;
-    }
-    #transactions th:nth-child(6),
-    #transactions td:nth-child(6) {
-      width: 12%;
-    }
-    #transactions th:nth-child(7),
-    #transactions td:nth-child(7) {
-      width: 12%;
-    }
-    #transactions th:nth-child(8),
-    #transactions td:nth-child(8) {
-      width: 12%;
-    }
-    #transactions .action-column {
-      display: flex;
-      justify-content: center;
-      gap: 5px;
-      flex-wrap: nowrap;
-    }
-    #transactions .action-btn {
-      padding: 6px 10px;
-      font-size: 12px;
     }
     @media (max-width: 576px) {
       body {
@@ -293,18 +207,11 @@
         align-items: stretch;
       }
       .action-btn {
-        padding: 6px 8px;
-        font-size: 11px;
+        padding: 6px 10px;
+        font-size: 12px;
       }
       .row.g-3 > div {
         margin-bottom: 10px;
-      }
-      #transactions .action-column {
-        gap: 3px;
-      }
-      #transactions .action-btn {
-        padding: 4px 6px;
-        font-size: 10px;
       }
     }
   </style>
@@ -333,26 +240,26 @@
             <h5>Nhập liệu</h5>
             <div class="row g-3">
               <div class="col-md-3 col-12">
-                <label for="formType" class="form-label">Loại lệnh</label>
+                <label for="formType" class="form-label">Loại lệnh:</label>
                 <select class="form-select" id="formType">
                   <option value="n">Nhập</option>
                   <option value="x">Xuất</option>
                 </select>
               </div>
               <div class="col-md-3 col-12">
-                <label for="formCode" class="form-label">Mã vải</label>
+                <label for="formCode" class="form-label">Mã vải:</label>
                 <input type="text" class="form-control" id="formCode" placeholder="VD: 950001">
               </div>
               <div class="col-md-2 col-12">
-                <label for="formTrees" class="form-label">Số cây</label>
-                <input type="text" class="form-control" id="formTrees" value="0">
+                <label for="formTrees" class="form-label">Số cây:</label>
+                <input type="number" min="0" step="1" class="form-control" id="formTrees" value="0">
               </div>
               <div class="col-md-2 col-12">
-                <label for="formMeters" class="form-label">Số mét</label>
-                <input type="text" class="form-control" id="formMeters" value="0.0">
+                <label for="formMeters" class="form-label">Số mét:</label>
+                <input type="number" step="0.1" class="form-control" id="formMeters" value="0.0">
               </div>
               <div class="col-md-2 col-12">
-                <label for="formDate" class="form-label">Ngày</label>
+                <label for="formDate" class="form-label">Ngày:</label>
                 <input type="date" class="form-control" id="formDate">
               </div>
             </div>
@@ -360,31 +267,23 @@
           </div>
           <div id="output" class="text-center">Kết quả sẽ hiển thị ở đây...</div>
           <h5 class="mt-4">Cập nhật mới nhất</h5>
-          <div class="table-container">
-            <table class="table table-bordered">
-              <thead>
-                <tr>
-                  <th class="code-column">Mã vải</th>
-                  <th class="number-column">Số cây</th>
-                  <th class="number-column">Số mét</th>
-                </tr>
-              </thead>
-              <tbody id="latest-inventory"></tbody>
-            </table>
-          </div>
+          <table class="table table-bordered">
+            <thead><tr><th>Mã vải</th><th>Số cây</th><th>Số mét</th></tr></thead>
+            <tbody id="latest-inventory"></tbody>
+          </table>
         </div>
         <div class="tab-pane fade" id="inventory">
           <div class="filter-section">
             <h5>Lọc tồn kho</h5>
             <div class="row g-3">
               <div class="col-md-3 col-12">
-                <label for="filterFabricType" class="form-label">Loại vải</label>
+                <label for="filterFabricType" class="form-label">Loại vải:</label>
                 <select class="form-select" id="filterFabricType">
                   <option value="">Tất cả loại vải</option>
                 </select>
               </div>
               <div class="col-md-3 col-12">
-                <label for="filterColor" class="form-label">Màu</label>
+                <label for="filterColor" class="form-label">Màu:</label>
                 <select class="form-select" id="filterColor">
                   <option value="">Tất cả màu</option>
                 </select>
@@ -397,20 +296,13 @@
           <h5 class="mt-2">Tồn kho</h5>
           <div class="table-container">
             <table class="table table-bordered">
-              <thead>
-                <tr>
-                  <th class="code-column">Mã vải</th>
-                  <th class="number-column">Số cây</th>
-                  <th class="number-column">Số mét</th>
-                  <th class="action-column">Hành động</th>
-                </tr>
-              </thead>
+              <thead><tr><th>Mã vải</th><th>Số cây</th><th>Số mét</th><th>Hành động</th></tr></thead>
               <tbody id="inventory-table"></tbody>
               <tfoot>
                 <tr class="total-row">
                   <td>Tổng cộng</td>
-                  <td id="total-trees" class="number-column"></td>
-                  <td id="total-meters" class="number-column"></td>
+                  <td id="total-trees"></td>
+                  <td id="total-meters"></td>
                   <td></td>
                 </tr>
               </tfoot>
@@ -422,17 +314,17 @@
             <h5>Lọc giao dịch</h5>
             <div class="row g-3">
               <div class="col-md-3 col-12">
-                <label for="filterCode" class="form-label">Mã vải</label>
+                <label for="filterCode" class="form-label">Mã vải:</label>
                 <select class="form-select" id="filterCode">
                   <option value="">Tất cả mã</option>
                 </select>
               </div>
               <div class="col-md-3 col-12">
-                <label for="filterStartDate" class="form-label">Từ ngày</label>
+                <label for="filterStartDate" class="form-label">Từ ngày:</label>
                 <input type="date" class="form-control" id="filterStartDate">
               </div>
               <div class="col-md-3 col-12">
-                <label for="filterEndDate" class="form-label">Đến ngày</label>
+                <label for="filterEndDate" class="form-label">Đến ngày:</label>
                 <input type="date" class="form-control" id="filterEndDate">
               </div>
               <div class="col-md-3 col-12 d-flex align-items-end">
@@ -447,12 +339,12 @@
                 <tr>
                   <th>Ngày</th>
                   <th>Loại</th>
-                  <th class="code-column">Mã vải</th>
-                  <th class="number-column">Số cây</th>
-                  <th class="number-column">Số mét</th>
-                  <th class="number-column">Tồn kho (cây)</th>
-                  <th class="number-column">Tồn kho (mét)</th>
-                  <th class="action-column">Hành động</th>
+                  <th>Mã vải</th>
+                  <th>Số cây</th>
+                  <th>Số mét</th>
+                  <th>Tồn kho (cây)</th>
+                  <th>Tồn kho (mét)</th>
+                  <th>Hành động</th>
                 </tr>
               </thead>
               <tbody id="transactions"></tbody>
@@ -1001,20 +893,6 @@
       });
     };
 
-    const formatNumber = (num, isMeter = false) => {
-      if (isNaN(num)) return '';
-      const formatted = num.toLocaleString('vi-VN', {
-        minimumFractionDigits: isMeter ? 1 : 0,
-        maximumFractionDigits: isMeter ? 1 : 0
-      });
-      return isMeter ? `${formatted} m` : formatted;
-    };
-
-    const parseFormattedNumber = (str) => {
-      if (!str) return 0;
-      return parseFloat(str.replace(/[^0-9.-]/g, ''));
-    };
-
     const updateLatestInventory = () => {
       if (!DOM.latestInventory) {
         showOutput('Lỗi hiển thị cập nhật mới nhất!');
@@ -1029,9 +907,9 @@
       const totalMeters = stockLines.reduce((sum, line) => sum + line.meters, 0);
       DOM.latestInventory.innerHTML = `
         <tr>
-          <td class="code-column">${inventoryManager.latestCode}</td>
-          <td class="number-column">${formatNumber(totalTrees)}</td>
-          <td class="number-column">${formatNumber(totalMeters, true)}</td>
+          <td>${inventoryManager.latestCode}</td>
+          <td>${totalTrees}</td>
+          <td>${totalMeters.toFixed(1)} m</td>
         </tr>`;
     };
 
@@ -1052,16 +930,16 @@
         ? '<tr><td colspan="4" class="text-center">Chưa có tồn kho</td></tr>'
         : filteredInventory.map(line => `
             <tr>
-              <td class="code-column">${line.code}</td>
-              <td class="number-column">${formatNumber(line.trees)}</td>
-              <td class="number-column">${formatNumber(line.meters, true)}</td>
-              <td class="action-column">
+              <td>${line.code}</td>
+              <td>${line.trees}</td>
+              <td>${line.meters.toFixed(1)} m</td>
+              <td>
                 <button class="btn btn-warning btn-sm action-btn" onclick='transferToInputTab(${JSON.stringify(line)})' ${line.trees === 0 && line.meters === 0 ? 'disabled' : ''}>Xuất</button>
               </td>
             </tr>`).join('');
 
-      DOM.totalTrees.textContent = formatNumber(totalTrees);
-      DOM.totalMeters.textContent = formatNumber(totalMeters, true);
+      DOM.totalTrees.textContent = totalTrees;
+      DOM.totalMeters.textContent = `${totalMeters.toFixed(1)} m`;
     };
 
     const updateInventoryFilters = () => {
@@ -1093,12 +971,12 @@
               <tr>
                 <td>${t.date}</td>
                 <td>${t.displayType}</td>
-                <td class="code-column">${t.code}</td>
-                <td class="number-column">${formatNumber(t.trees)}</td>
-                <td class="number-column">${formatNumber(t.meters, true)}</td>
-                <td class="number-column">${formatNumber(t.stockTrees)}</td>
-                <td class="number-column">${formatNumber(t.stockMeters, true)}</td>
-                <td class="action-column">
+                <td>${t.code}</td>
+                <td>${t.trees}</td>
+                <td>${t.meters.toFixed(1)} m</td>
+                <td>${t.stockTrees}</td>
+                <td>${t.stockMeters.toFixed(1)} m</td>
+                <td>
                   <button class="btn btn-warning btn-sm action-btn" onclick="editTransaction(${globalIndex})">Sửa</button>
                   <button class="btn btn-danger btn-sm action-btn" onclick="deleteTransaction(${globalIndex})">Xóa</button>
                 </td>
@@ -1127,8 +1005,8 @@
     const processFormCommand = () => {
       const type = document.getElementById('formType')?.value;
       const code = document.getElementById('formCode')?.value.trim().toUpperCase();
-      const trees = parseInt(parseFormattedNumber(document.getElementById('formTrees')?.value));
-      const meters = parseFloat(parseFormattedNumber(document.getElementById('formMeters')?.value));
+      const trees = parseInt(document.getElementById('formTrees')?.value);
+      const meters = parseFloat(document.getElementById('formMeters')?.value);
       const date = document.getElementById('formDate')?.value || inventoryManager.today;
 
       if (!type || !code || isNaN(trees) || isNaN(meters)) {
@@ -1147,8 +1025,8 @@
       const formattedDate = inventoryManager.formatDate(date);
 
       const message = inventoryManager.editingIndex !== null
-        ? `Xác nhận cập nhật giao dịch mã ${formattedCode} với ${type === 'n' ? 'nhập' : 'xuất'} ${formatNumber(trees)} cây, ${formatNumber(formattedMeters, true)} vào ngày ${formattedDate}?`
-        : `Xác nhận ${type === 'n' ? 'nhập' : 'xuất'} mã ${formattedCode} ${formatNumber(trees)} cây, ${formatNumber(formattedMeters, true)} vào ngày ${formattedDate}?`;
+        ? `Xác nhận cập nhật giao dịch mã ${formattedCode} với ${type === 'n' ? 'nhập' : 'xuất'} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}?`
+        : `Xác nhận ${type === 'n' ? 'nhập' : 'xuất'} mã ${formattedCode} ${trees} cây, ${formattedMeters.toFixed(1)} mét vào ngày ${formattedDate}?`;
 
       showConfirmation(message, () => {
         let result;
@@ -1170,8 +1048,8 @@
         updateUI();
         showOutput('Đã cập nhật thành công!');
         document.getElementById('formCode').value = '';
-        document.getElementById('formTrees').value = formatNumber(0);
-        document.getElementById('formMeters').value = formatNumber(0);
+        document.getElementById('formTrees').value = '0';
+        document.getElementById('formMeters').value = '0.0';
       });
     };
 
@@ -1195,8 +1073,8 @@
       inventoryManager.editingIndex = index;
       formType.value = transaction.type;
       formCode.value = transaction.code.replace('-', '');
-      formTrees.value = formatNumber(transaction.trees);
-      formMeters.value = formatNumber(transaction.meters);
+      formTrees.value = transaction.trees;
+      formMeters.value = transaction.meters.toFixed(1);
       formDate.value = transaction.date.split('/').reverse().join('-');
 
       const tab = new bootstrap.Tab(inputTab);
@@ -1344,36 +1222,13 @@
 
       formType.value = 'x';
       formCode.value = line.code.replace('-', '');
-      formTrees.value = formatNumber(line.trees);
-      formMeters.value = formatNumber(line.meters);
+      formTrees.value = line.trees;
+      formMeters.value = line.meters.toFixed(1);
       formDate.value = inventoryManager.today;
 
       const tab = new bootstrap.Tab(inputTab);
       tab.show();
     };
-
-    const handleNumberInput = (input) => {
-      input.addEventListener('input', () => {
-        let value = input.value.replace(/[^0-9.]/g, '');
-        if (value === '') {
-          input.value = '0';
-          return;
-        }
-        const num = parseFloat(value);
-        if (isNaN(num)) {
-          input.value = '0';
-          return;
-        }
-        input.value = formatNumber(num, input.id === 'formMeters');
-      });
-      input.addEventListener('blur', () => {
-        const num = parseFormattedNumber(input.value);
-        input.value = formatNumber(isNaN(num) ? 0 : num, input.id === 'formMeters');
-      });
-    };
-
-    handleNumberInput(document.getElementById('formTrees'));
-    handleNumberInput(document.getElementById('formMeters'));
 
     document.getElementById('formDate').value = inventoryManager.today;
     document.getElementById('input-tab')?.addEventListener('shown.bs.tab', () => {
@@ -1386,7 +1241,7 @@
     document.getElementById('nextPageButton')?.addEventListener('click', nextPage);
     document.getElementById('exportInventoryButton')?.addEventListener('click', exportInventory);
     document.getElementById('exportTransactionsButton')?.addEventListener('click', exportTransactions);
-    document.getElementByton('importInventoryButton')?.addEventListener('click', importInventory);
+    document.getElementById('importInventoryButton')?.addEventListener('click', importInventory);
     document.getElementById('deleteAllTransactionsButton')?.addEventListener('click', deleteAllTransactions);
     document.getElementById('importInventoryFile')?.addEventListener('change', () => {
       const importButton = document.getElementById('importInventoryButton');
