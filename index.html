@@ -167,6 +167,12 @@
       border-top: 1px solid #E2E8F0;
       text-align: center;
     }
+    #latest-inventory-table th, #latest-inventory-table td {
+      text-align: center; /* Căn giữa bảng cập nhật mới nhất */
+    }
+    #inventory-table-container th, #inventory-table-container td {
+      text-align: center !important; /* Căn giữa bảng tồn kho, ưu tiên cao */
+    }
     @media (max-width: 576px) {
       body {
         padding: 10px;
@@ -267,7 +273,7 @@
           </div>
           <div id="output" class="text-center">Kết quả sẽ hiển thị ở đây...</div>
           <h5 class="mt-4">Cập nhật mới nhất</h5>
-          <table class="table table-bordered">
+          <table class="table table-bordered" id="latest-inventory-table">
             <thead><tr><th>Mã vải</th><th>Số cây</th><th>Số mét</th></tr></thead>
             <tbody id="latest-inventory"></tbody>
           </table>
@@ -295,7 +301,7 @@
           </div>
           <h5 class="mt-2">Tồn kho</h5>
           <div class="table-container">
-            <table class="table table-bordered">
+            <table class="table table-bordered" id="inventory-table-container">
               <thead><tr><th>Mã vải</th><th>Số cây</th><th>Số mét</th><th>Hành động</th></tr></thead>
               <tbody id="inventory-table"></tbody>
               <tfoot>
@@ -420,6 +426,13 @@
         clearTimeout(timeout);
         timeout = setTimeout(() => func(...args), wait);
       };
+    };
+
+    // Hàm định dạng số với phân cách hàng ngàn và 1 số thập phân
+    const formatNumber = (num, decimals = 1) => {
+      return parseFloat(num)
+        .toFixed(decimals)
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     };
 
     class InventoryManager {
@@ -908,8 +921,8 @@
       DOM.latestInventory.innerHTML = `
         <tr>
           <td>${inventoryManager.latestCode}</td>
-          <td>${totalTrees}</td>
-          <td>${totalMeters.toFixed(1)} m</td>
+          <td>${formatNumber(totalTrees, 0)}</td>
+          <td>${formatNumber(totalMeters)} m</td>
         </tr>`;
     };
 
@@ -931,15 +944,15 @@
         : filteredInventory.map(line => `
             <tr>
               <td>${line.code}</td>
-              <td>${line.trees}</td>
-              <td>${line.meters.toFixed(1)} m</td>
+              <td>${formatNumber(line.trees, 0)}</td>
+              <td>${formatNumber(line.meters)} m</td>
               <td>
                 <button class="btn btn-warning btn-sm action-btn" onclick='transferToInputTab(${JSON.stringify(line)})' ${line.trees === 0 && line.meters === 0 ? 'disabled' : ''}>Xuất</button>
               </td>
             </tr>`).join('');
 
-      DOM.totalTrees.textContent = totalTrees;
-      DOM.totalMeters.textContent = `${totalMeters.toFixed(1)} m`;
+      DOM.totalTrees.textContent = formatNumber(totalTrees, 0);
+      DOM.totalMeters.textContent = `${formatNumber(totalMeters)} m`;
     };
 
     const updateInventoryFilters = () => {
