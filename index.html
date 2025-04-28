@@ -124,13 +124,11 @@
       padding: 12px;
       font-weight: 500;
       border-bottom: 2px solid #E2E8F0;
-      text-align: center;
     }
     .table td {
       padding: 12px;
       border-bottom: 1px solid #E2E8F0;
       vertical-align: middle;
-      text-align: center;
     }
     .table tr:hover {
       background: #F7FAFC;
@@ -138,9 +136,6 @@
     .total-row {
       background: #EDF2F7;
       font-weight: 600;
-    }
-    .total-row td {
-      text-align: center;
     }
     .action-btn {
       padding: 6px 12px;
@@ -171,44 +166,6 @@
       padding-top: 20px;
       border-top: 1px solid #E2E8F0;
       text-align: center;
-    }
-    #transactions th:nth-child(1),
-    #transactions td:nth-child(1) {
-      width: 12%;
-    }
-    #transactions th:nth-child(2),
-    #transactions td:nth-child(2) {
-      width: 10%;
-    }
-    #transactions th:nth-child(3),
-    #transactions td:nth-child(3) {
-      width: 12%;
-    }
-    #transactions th:nth-child(4),
-    #transactions td:nth-child(4) {
-      width: 11%;
-    }
-    #transactions th:nth-child(5),
-    #transactions td:nth-child(5) {
-      width: 12%;
-    }
-    #transactions th:nth-child(6),
-    #transactions td:nth-child(6) {
-      width: 12%;
-    }
-    #transactions th:nth-child(7),
-    #transactions td:nth-child(7) {
-      width: 12%;
-    }
-    #transactions th:nth-child(8),
-    #transactions td:nth-child(8) {
-      width: 15%;
-    }
-    #transactions .action-column {
-      display: flex;
-      justify-content: center;
-      gap: 5px;
-      flex-wrap: nowrap;
     }
     @media (max-width: 576px) {
       body {
@@ -255,13 +212,6 @@
       }
       .row.g-3 > div {
         margin-bottom: 10px;
-      }
-      #transactions .action-column {
-        gap: 3px;
-      }
-      #transactions .action-btn {
-        padding: 4px 6px;
-        font-size: 10px;
       }
     }
   </style>
@@ -1026,7 +976,7 @@
                 <td>${t.meters.toFixed(1)} m</td>
                 <td>${t.stockTrees}</td>
                 <td>${t.stockMeters.toFixed(1)} m</td>
-                <td class="action-column">
+                <td>
                   <button class="btn btn-warning btn-sm action-btn" onclick="editTransaction(${globalIndex})">Sửa</button>
                   <button class="btn btn-danger btn-sm action-btn" onclick="deleteTransaction(${globalIndex})">Xóa</button>
                 </td>
