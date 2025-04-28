@@ -241,7 +241,7 @@
     }
     #transactions th:nth-child(8),
     #transactions td:nth-child(8) {
-      width: 10%;
+      width: 12%;
     }
     #transactions .action-column {
       display: flex;
@@ -1171,7 +1171,7 @@
         showOutput('Đã cập nhật thành công!');
         document.getElementById('formCode').value = '';
         document.getElementById('formTrees').value = formatNumber(0);
-        document.getElementById('formMeters').value = formatNumber(0, true);
+        document.getElementById('formMeters').value = formatNumber(0);
       });
     };
 
@@ -1196,7 +1196,7 @@
       formType.value = transaction.type;
       formCode.value = transaction.code.replace('-', '');
       formTrees.value = formatNumber(transaction.trees);
-      formMeters.value = formatNumber(transaction.meters, true);
+      formMeters.value = formatNumber(transaction.meters);
       formDate.value = transaction.date.split('/').reverse().join('-');
 
       const tab = new bootstrap.Tab(inputTab);
@@ -1345,35 +1345,35 @@
       formType.value = 'x';
       formCode.value = line.code.replace('-', '');
       formTrees.value = formatNumber(line.trees);
-      formMeters.value = formatNumber(line.meters, true);
+      formMeters.value = formatNumber(line.meters);
       formDate.value = inventoryManager.today;
 
       const tab = new bootstrap.Tab(inputTab);
       tab.show();
     };
 
-    const handleNumberInput = (input, isMeter = false) => {
+    const handleNumberInput = (input) => {
       input.addEventListener('input', () => {
         let value = input.value.replace(/[^0-9.]/g, '');
         if (value === '') {
-          input.value = isMeter ? '0.0' : '0';
+          input.value = '0';
           return;
         }
         const num = parseFloat(value);
         if (isNaN(num)) {
-          input.value = isMeter ? '0.0' : '0';
+          input.value = '0';
           return;
         }
-        input.value = formatNumber(num, isMeter);
+        input.value = formatNumber(num, input.id === 'formMeters');
       });
       input.addEventListener('blur', () => {
         const num = parseFormattedNumber(input.value);
-        input.value = formatNumber(isNaN(num) ? 0 : num, isMeter);
+        input.value = formatNumber(isNaN(num) ? 0 : num, input.id === 'formMeters');
       });
     };
 
     handleNumberInput(document.getElementById('formTrees'));
-    handleNumberInput(document.getElementById('formMeters'), true);
+    handleNumberInput(document.getElementById('formMeters'));
 
     document.getElementById('formDate').value = inventoryManager.today;
     document.getElementById('input-tab')?.addEventListener('shown.bs.tab', () => {
@@ -1386,7 +1386,7 @@
     document.getElementById('nextPageButton')?.addEventListener('click', nextPage);
     document.getElementById('exportInventoryButton')?.addEventListener('click', exportInventory);
     document.getElementById('exportTransactionsButton')?.addEventListener('click', exportTransactions);
-    document.getElementById('importInventoryButton')?.addEventListener('click', importInventory);
+    document.getElementByton('importInventoryButton')?.addEventListener('click', importInventory);
     document.getElementById('deleteAllTransactionsButton')?.addEventListener('click', deleteAllTransactions);
     document.getElementById('importInventoryFile')?.addEventListener('change', () => {
       const importButton = document.getElementById('importInventoryButton');
